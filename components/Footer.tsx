@@ -102,7 +102,7 @@ export default function Footer() {
                   Directions (Google Maps)
                 </a>
                 <a
-                  href="https://hughestownstorage.com/directions-apple"
+                  href="https://maps.apple.com/?daddr=41.332021,-75.776151&q=Hughestown%20Self-Storage&dirflg=d"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 cursor-pointer flex items-center justify-center w-3/4"
