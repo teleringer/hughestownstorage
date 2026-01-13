@@ -93,7 +93,7 @@ export default function Footer() {
               {/* Map Links - 75% width and left justified on desktop, centered on mobile */}
               <div className="mt-6 space-y-2 flex flex-col items-center md:items-start">
                 <a
-                  href="https://hughestownstorage.com/directions-google"
+                  href="https://maps.app.goo.gl/MN215YU6qtMzG3FJ7"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 cursor-pointer flex items-center justify-center w-3/4"
