@@ -1,19 +1,28 @@
-
 'use client';
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);   // Desktop "MORE INFO"
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
+  const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);   // Mobile "MORE INFO"
   const [activeMenuItem, setActiveMenuItem] = useState('');
   const [hideTopBar, setHideTopBar] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const pathname = usePathname();
+
+  // Auto-close menus on route change
+  useEffect(() => {
+    setIsDropdownOpen(false);
+    setIsMoreInfoOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,6 +81,7 @@ export default function Header() {
     setActiveMenuItem(item);
     setIsMobileMenuOpen(false);
     setIsMoreInfoOpen(false);
+    setIsDropdownOpen(false);
   };
 
   const handleMobileMenuToggle = () => {
@@ -191,28 +201,28 @@ export default function Header() {
                 
                 {isDropdownOpen && (
                   <div className="absolute top-full right-0 bg-blue-600 shadow-lg rounded-b-lg z-50 min-w-[200px]">
-                    <Link href="/#about" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/#about" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       About Us
                     </Link>
-                    <Link href="/conference-room-rental" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/conference-room-rental" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       Conference Room Rental
                     </Link>
-                    <Link href="/document-storage" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/document-storage" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       Document Storage
                     </Link>
-                    <Link href="/faqs" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/faqs" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       FAQs
                     </Link>
-                    <Link href="/moving-supplies" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/moving-supplies" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       Moving Supplies
                     </Link>
-                    <Link href="/storage-size-guide" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/storage-size-guide" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       Storage Size Guide
                     </Link>
-                    <Link href="/tenant-protection" className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
+                    <Link href="/tenant-protection" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 cursor-pointer">
                       Tenant Protection
                     </Link>
-                    <Link href="/the-vault" className="block px-4 py-3 text-white hover:bg-blue-700 cursor-pointer">
+                    <Link href="/the-vault" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-white hover:bg-blue-700 cursor-pointer">
                       The Vault (Our Blog)
                     </Link>
                   </div>
