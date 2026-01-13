@@ -2,7 +2,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-// Ensure Node runtime (Resend SDK needs Node, not Edge)
 export const runtime = "nodejs";
 
 type Payload = {
@@ -20,7 +19,7 @@ export async function POST(req: Request) {
 
     if (!body.email || !body.message) {
       return NextResponse.json(
-        { ok: false, error: "Missing required fields: email and message are required." },
+        { ok: false, error: "Missing required fields: email and message." },
         { status: 400 }
       );
     }
@@ -28,15 +27,14 @@ export async function POST(req: Request) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
       return NextResponse.json(
-        { ok: false, error: "Missing RESEND_API_KEY on server." },
+        { ok: false, error: "Server missing RESEND_API_KEY." },
         { status: 500 }
       );
     }
 
     const resend = new Resend(resendApiKey);
 
-    // QUICK TEST SENDER: works without domain verification.
-    // After it works, switch to: `Hughestown Self-Storage <no-reply@hughestownstorage.com>`
+    // Keep test sender for now
     const from = "Hughestown Self-Storage <onboarding@resend.dev>";
     const toOffice = "office@hughestownstorage.com";
 
@@ -61,7 +59,6 @@ export async function POST(req: Request) {
       <p>— Hughestown Self-Storage<br/>133 New Street, Hughestown, PA 18640<br/>(570) 362-6150</p>
     `;
 
-    // Send to office
     const officeRes = await resend.emails.send({
       from,
       to: toOffice,
@@ -70,7 +67,6 @@ export async function POST(req: Request) {
       html: htmlOffice,
     });
 
-    // Auto-reply to user
     const userRes = await resend.emails.send({
       from,
       to: body.email,
@@ -78,17 +74,23 @@ export async function POST(req: Request) {
       html: htmlUser,
     });
 
-    // If Resend returns errors, surface them
-    if ((officeRes as any)?.error || (userRes as any)?.error) {
+    // Surface any Resend-level error
+    const officeError = (officeRes as any)?.error;
+    const userError = (userRes as any)?.error;
+
+    if (officeError || userError) {
       return NextResponse.json(
-        { ok: false, error: (officeRes as any)?.error || (userRes as any)?.error },
+        { ok: false, officeError, userError },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      officeId: (officeRes as any)?.id || null,
+      userId: (userRes as any)?.id || null,
+    });
   } catch (err: any) {
-    // Return error to client for easier debugging (remove later if you prefer)
     return NextResponse.json(
       { ok: false, error: err?.message || "Failed to send message." },
       { status: 500 }
@@ -96,7 +98,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Optional: a simple GET to verify the route is deployed
 export async function GET() {
   return NextResponse.json({ ok: true, route: "contact", method: "GET" });
 }
