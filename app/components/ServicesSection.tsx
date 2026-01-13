@@ -30,7 +30,7 @@ export default function ServicesSection() {
       sqft: "200 sq ft",
       description: "Size of a one-car garage - Drive up access",
       items: ["Three bedroom house", "Car or boat", "Commercial inventory", "Large equipment"],
-      image: "/units/10x20.jpg",
+      image: "/units/10x20x10.jpg",
       cashPrice: "$205",
       cardPrice: "$213.18",
       link: "https://hughestownstorage.ccstorage.com/rentals/new?location_id=loc_b4455999eed8b6afbdd82c48680ffb0c&storage_unit_type_id=sut_c805866207bbfc3fb57fb96324bef33e"
@@ -40,7 +40,7 @@ export default function ServicesSection() {
       sqft: "300 sq ft",
       description: "Size of a one and a half car garage - Drive up access",
       items: ["Four bedroom house", "Multiple vehicles", "Business warehouse", "Large collections"],
-      image: "/units/000-10x30.jpg",
+      image: "/units/10x30x10.jpg",
       cashPrice: "$299",
       cardPrice: "$310.93",
       link: "https://hughestownstorage.ccstorage.com/rentals/new?location_id=loc_b4455999eed8b6afbdd82c48680ffb0c&storage_unit_type_id=sut_4a60c73712b8b1b8b294231d7d07a48d"
