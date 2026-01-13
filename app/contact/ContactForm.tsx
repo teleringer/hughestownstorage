@@ -1,147 +1,157 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
-type FormData = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  interests: string[]; // <-- explicitly typed
-  message: string;
-};
+type Status =
+  | { state: 'idle' }
+  | { state: 'submitting' }
+  | { state: 'success'; message: string }
+  | { state: 'error'; message: string };
 
 export default function ContactForm() {
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    interests: [],
-    message: "",
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
   });
+  const [status, setStatus] = useState<Status>({ state: 'idle' });
 
-  const [sent, setSent] = useState(false);
-
-  const handleChange = (
+  const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      interests: checked
-        ? [...prev.interests, value]
-        : prev.interests.filter((v) => v !== value),
-    }));
-  };
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();               // IMPORTANT: stop default navigation
+    setStatus({ state: 'submitting' });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: wire to email/Supabase later. For now, just simulate success.
-    setSent(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      // Inspect response inside DevTools if needed
+      const json = await res.json().catch(() => ({} as any));
+      console.log('POST /api/contact ->', res.status, json);
+
+      if (!res.ok || json.ok === false) {
+        setStatus({
+          state: 'error',
+          message:
+            (json && json.error) ||
+            `Failed to send (status ${res.status}). Check server logs.`,
+        });
+        return;
+      }
+
+      setStatus({
+        state: 'success',
+        message:
+          'Thanks! Your message has been sent. We will get back to you shortly.',
+      });
+      setForm({ name: '', email: '', phone: '', message: '' });
+    } catch (err: any) {
+      console.error(err);
+      setStatus({
+        state: 'error',
+        message:
+          err?.message || 'Network error. Please check your connection.',
+      });
+    }
   };
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
-
-      {sent ? (
-        <div className="rounded-md border border-green-300 bg-green-50 p-4">
-          <p className="font-medium">Thanks! Your message has been sent.</p>
-          <p className="text-sm text-gray-600">
-            We’ll get back to you as soon as possible.
-          </p>
+    <section className="max-w-3xl mx-auto px-4 py-12">
+      {status.state === 'success' && (
+        <div className="mb-6 rounded border border-green-300 bg-green-50 p-4 text-green-800">
+          {status.message}
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">First name</label>
-              <input
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full rounded border px-3 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Last name</label>
-              <input
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="w-full rounded border px-3 py-2"
-                required
-              />
-            </div>
-          </div>
+      )}
+      {status.state === 'error' && (
+        <div className="mb-6 rounded border border-red-300 bg-red-50 p-4 text-red-800">
+          {status.message}
+        </div>
+      )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full rounded border px-3 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
-              <input
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full rounded border px-3 py-2"
-              />
-            </div>
-          </div>
-
-          <fieldset className="border rounded p-3">
-            <legend className="text-sm font-medium px-1">Interest</legend>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {["5x5", "5x10", "10x10", "10x20"].map((size) => (
-                <label key={size} className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    value={size}
-                    checked={formData.interests.includes(size)}
-                    onChange={handleCheckboxChange}
-                  />
-                  <span>{size} unit</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
+      <form onSubmit={onSubmit} noValidate>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Message</label>
-            <textarea
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              rows={4}
+            <label htmlFor="name" className="block text-sm font-medium mb-1">
+              Name
+            </label>
+            <input
+              id="name"
+              name="name"
+              autoComplete="name"
+              required
               className="w-full rounded border px-3 py-2"
-              placeholder="How can we help?"
+              value={form.name}
+              onChange={onChange}
             />
           </div>
 
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded bg-black px-4 py-2 text-white"
-          >
-            Send
-          </button>
-        </form>
-      )}
-    </div>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium mb-1">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              className="w-full rounded border px-3 py-2"
+              value={form.email}
+              onChange={onChange}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="phone" className="block text-sm font-medium mb-1">
+              Phone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              autoComplete="tel"
+              className="w-full rounded border px-3 py-2"
+              value={form.phone}
+              onChange={onChange}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium mb-1"
+            >
+              Message
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              rows={5}
+              required
+              className="w-full rounded border px-3 py-2"
+              value={form.message}
+              onChange={onChange}
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={status.state === 'submitting'}
+          className="mt-6 rounded bg-blue-600 px-6 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        >
+          {status.state === 'submitting' ? 'Sending…' : 'Send Message'}
+        </button>
+      </form>
+    </section>
   );
 }
