@@ -8,13 +8,16 @@ import ContactSection from "./components/ContactSection";
 
 export default function Home() {
   return (
-    <main className="pt-24 md:pt-48 lg:pt-56 space-y-20">
-      <HeroSection />
-      <FeaturesSection />
-      <ServicesSection />
-      <RentStepsSection />
-      <AboutSection />
-      <ContactSection />
+    // Adjust these numbers if your header height changes
+    <main className="pt-[88px] md:pt-[128px]">
+      <div className="space-y-20">
+        <HeroSection />
+        <FeaturesSection />
+        <ServicesSection />
+        <RentStepsSection />
+        <AboutSection />
+        <ContactSection />
+      </div>
     </main>
   );
 }
