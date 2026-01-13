@@ -38,7 +38,7 @@ export default function AboutSection() {
           </div>
           <div className="relative">
             <img 
-              src="https://readdy.ai/api/search-image?query=Professional%20outdoor%20storage%20facility%20entrance%20with%20modern%20security%20gate%2C%20well-maintained%20grounds%2C%20clear%20signage%2C%20professional%20lighting%2C%20clean%20and%20organized%20appearance%2C%20commercial%20storage%20business&width=600&height=500&seq=about1&orientation=landscape"
+              src="/about/about-photo.jpg"
               alt="Hughestown Self-Storage Facility"
               className="w-full rounded-lg shadow-lg object-cover h-[500px]"
             />
