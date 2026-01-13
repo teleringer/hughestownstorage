@@ -40,7 +40,7 @@ export default function ServicesSection() {
       sqft: "300 sq ft",
       description: "Size of a one and a half car garage - Drive up access",
       items: ["Four bedroom house", "Multiple vehicles", "Business warehouse", "Large collections"],
-      image: "https://readdy.ai/api/search-image?query=Storage%20unit%20interior%20exactly%20like%2010x10%20unit%20but%20three%20times%20as%20deep%20extended%20length%20same%20wood%20walls%20concrete%20floor%20metal%20door%20same%20lighting%20and%20appearance%20professional%20self%20storage%20facility%20extra%20large%20depth&width=300&height=200&seq=real10x30&orientation=landscape",
+      image: "/units/000-10x30.jpg",
       cashPrice: "$299",
       cardPrice: "$310.93",
       link: "https://hughestownstorage.ccstorage.com/rentals/new?location_id=loc_b4455999eed8b6afbdd82c48680ffb0c&storage_unit_type_id=sut_4a60c73712b8b1b8b294231d7d07a48d"
