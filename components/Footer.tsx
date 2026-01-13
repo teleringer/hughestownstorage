@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -11,23 +10,61 @@ export default function Footer() {
           {/* Company Logo and Certifications */}
           <div className="text-center md:text-left">
             <div className="mb-6 flex justify-center md:justify-start">
-              <img 
-                src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png" 
-                alt="Hughestown Self-Storage" 
+              <img
+                src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png"
+                alt="Hughestown Self-Storage"
                 className="h-16 object-contain"
               />
             </div>
-            
+
             {/* Certification Logos - Vertically aligned with proper spacing */}
             <div className="flex flex-col items-center md:items-start space-y-4">
-              <a href="https://www.paselfstorage.org/" target="_blank" rel="noopener noreferrer" className="bg-white p-3 md:p-2 rounded cursor-pointer">
-                <img src="https://hughestownstorage.com/wp-content/uploads/elementor/thumbs/passa-logo-whbg.fw_-qzyicvwohbbqkh1itctzzt7ucslnt8ifmpb3it2bec.webp" alt="PASSA" className="h-16 md:h-10 object-contain" />
+              <a
+                href="https://www.paselfstorage.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white p-3 md:p-2 rounded cursor-pointer"
+                aria-label="PA Self Storage Association (opens in new tab)"
+              >
+                <img
+                  src="/affiliations/pssa.png"
+                  alt="PA Self Storage Association"
+                  width={240}
+                  height={90}
+                  className="h-16 md:h-10 w-auto object-contain"
+                />
               </a>
-              <a href="https://www.selfstorage.org/" target="_blank" rel="noopener noreferrer" className="bg-white p-3 md:p-2 rounded cursor-pointer">
-                <img src="https://hughestownstorage.com/wp-content/uploads/elementor/thumbs/self-storage-association-logo-qzyicq9ncb44q4qkli4qa9t2v92as8aa4mhr1qlo8s.webp" alt="Self Storage Association" className="h-16 md:h-10 object-contain" />
+
+              <a
+                href="https://www.selfstorage.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white p-3 md:p-2 rounded cursor-pointer"
+                aria-label="Self Storage Association (opens in new tab)"
+              >
+                <img
+                  src="/affiliations/ssa.png"
+                  alt="Self Storage Association"
+                  width={240}
+                  height={90}
+                  className="h-16 md:h-10 w-auto object-contain"
+                />
               </a>
-              <a href="https://www.insideselfstorage.com/" target="_blank" rel="noopener noreferrer" className="bg-white p-3 md:p-2 rounded cursor-pointer">
-                <img src="https://hughestownstorage.com/wp-content/uploads/elementor/thumbs/iss-logo-r0fnn4yvcbwzrtg7c9fg3iwiwdn3mnpffc0tyt7ri4.webp" alt="ISS - Inside Self Storage" className="h-16 md:h-10 object-contain" />
+
+              <a
+                href="https://www.insideselfstorage.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white p-3 md:p-2 rounded cursor-pointer"
+                aria-label="Inside Self-Storage (opens in new tab)"
+              >
+                <img
+                  src="/affiliations/iss.png"
+                  alt="Inside Self-Storage"
+                  width={240}
+                  height={90}
+                  className="h-16 md:h-10 w-auto object-contain"
+                />
               </a>
             </div>
           </div>
@@ -40,21 +77,36 @@ export default function Footer() {
               <p>133 New Street</p>
               <p>Hughestown, PA 18640</p>
             </div>
-            
+
             <div>
               <h3 className="text-orange-500 text-lg font-semibold mb-4">Follow Us</h3>
-              <a href="https://x.com/HughestownSS" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-white hover:text-orange-400 cursor-pointer">
+              <a
+                href="https://x.com/HughestownSS"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-white hover:text-orange-400 cursor-pointer"
+              >
                 <i className="ri-twitter-x-line mr-2 w-5 h-5 flex items-center justify-center"></i>
                 @HughestownSS
               </a>
-              
+
               {/* Map Links - 75% width and left justified on desktop, centered on mobile */}
               <div className="mt-6 space-y-2 flex flex-col items-center md:items-start">
-                <a href="https://hughestownstorage.com/directions-google" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 cursor-pointer flex items-center justify-center w-3/4">
+                <a
+                  href="https://hughestownstorage.com/directions-google"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 cursor-pointer flex items-center justify-center w-3/4"
+                >
                   <i className="ri-map-pin-line mr-2"></i>
                   Directions (Google Maps)
                 </a>
-                <a href="https://hughestownstorage.com/directions-apple" target="_blank" rel="noopener noreferrer" className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 cursor-pointer flex items-center justify-center w-3/4">
+                <a
+                  href="https://hughestownstorage.com/directions-apple"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 cursor-pointer flex items-center justify-center w-3/4"
+                >
                   <i className="ri-map-pin-line mr-2"></i>
                   Directions (Apple Maps)
                 </a>
@@ -75,7 +127,7 @@ export default function Footer() {
                 <p className="text-orange-400">Gate Access Hours</p>
                 <p>6:00 AM - 10:00 PM</p>
               </div>
-              
+
               <div className="mt-4 text-sm">
                 <p>* Closed Early Sunday</p>
                 <p>New Year's Day</p>
