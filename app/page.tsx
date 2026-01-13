@@ -8,13 +8,13 @@ import ContactSection from "./components/ContactSection";
 
 export default function Home() {
   return (
-    <div className="space-y-20">
+    <main className="pt-24 md:pt-48 lg:pt-56 space-y-20">
       <HeroSection />
       <FeaturesSection />
       <ServicesSection />
       <RentStepsSection />
       <AboutSection />
       <ContactSection />
-    </div>
+    </main>
   );
 }
