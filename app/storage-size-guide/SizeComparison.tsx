@@ -18,7 +18,7 @@ export default function SizeComparison() {
       sqft: "150 sq ft",
       description: "Three-quarters of a one-car garage - Drive up access",
       items: ["Two bedroom apartment", "Multiple large items", "Business stock", "Vehicle storage"],
-      image: "https://readdy.ai/api/search-image?query=Storage%20unit%20interior%20exactly%20like%2010x10%20unit%20but%2050%25%20deeper%20extended%20length%20same%20wood%20walls%20concrete%20floor%20metal%20door%20same%20lighting%20and%20appearance%20professional%20self%20storage%20facility&width=300&height=200&seq=guide10x15&orientation=landscape",
+      image: "/units/10x15.jpg",
       cashPrice: "$175",
       cardPrice: "$181.98",
       link: "https://hughestownstorage.ccstorage.com/rentals/new?location_id=loc_b4455999eed8b6afbdd82c48680ffb0c&storage_unit_type_id=sut_a24d77975f022740e0774ebc8e550242"
@@ -28,7 +28,7 @@ export default function SizeComparison() {
       sqft: "200 sq ft",
       description: "Size of a one-car garage - Drive up access",
       items: ["Three bedroom house", "Car or boat", "Commercial inventory", "Large equipment"],
-      image: "https://readdy.ai/api/search-image?query=Storage%20unit%20interior%20exactly%20like%2010x10%20unit%20but%20twice%20as%20deep%20extended%20length%20same%20wood%20walls%20concrete%20floor%20metal%20door%20same%20lighting%20and%20appearance%20professional%20self%20storage%20facility%20full%20garage%20depth&width=300&height=200&seq=guide10x20&orientation=landscape",
+      image: "/units/10x20.jpg",
       cashPrice: "$205",
       cardPrice: "$213.18",
       link: "https://hughestownstorage.ccstorage.com/rentals/new?location_id=loc_b4455999eed8b6afbdd82c48680ffb0c&storage_unit_type_id=sut_c805866207bbfc3fb57fb96324bef33e"
