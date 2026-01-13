@@ -1,8 +1,6 @@
 
 'use client';
 
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 import BlogHero from './BlogHero';
 import BlogPosts from './BlogPosts';
 import BlogSidebar from './BlogSidebar';
@@ -10,7 +8,6 @@ import BlogSidebar from './BlogSidebar';
 export default function TheVault() {
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="pt-20 md:pt-40">
         <BlogHero />
         <div className="max-w-7xl mx-auto px-4 py-16">
@@ -24,7 +21,6 @@ export default function TheVault() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
