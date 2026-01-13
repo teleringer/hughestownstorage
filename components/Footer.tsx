@@ -146,8 +146,8 @@ export default function Footer() {
             <h3 className="text-orange-500 text-lg font-semibold mb-4">Menu</h3>
             <ul className="space-y-2 text-white">
               <li><Link href="/" className="hover:text-orange-400 cursor-pointer">Home</Link></li>
-              <li><Link href="/sign-in" className="hover:text-orange-400 cursor-pointer">Sign In</Link></li>
-              <li><Link href="/rent-now" className="hover:text-orange-400 cursor-pointer">Rent Now</Link></li>
+              <li><Link href="https://hughestownstorage.ccstorage.com/sign-in" target="_blank" className="hover:text-orange-400 cursor-pointer">Sign In</Link></li>
+              <li><Link href="https://hughestownstorage.ccstorage.com/find_units" target="blank" className="hover:text-orange-400 cursor-pointer">Rent Now</Link></li>
               <li><Link href="/#about" className="hover:text-orange-400 cursor-pointer">About Us</Link></li>
               <li><Link href="/conference-room-rental" className="hover:text-orange-400 cursor-pointer">Conference Room Rental</Link></li>
               <li><Link href="/document-storage" className="hover:text-orange-400 cursor-pointer">Document Storage</Link></li>
