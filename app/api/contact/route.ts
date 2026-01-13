@@ -2,6 +2,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+// Ensure Node runtime (Resend SDK needs Node, not Edge)
+export const runtime = "nodejs";
+
 type Payload = {
   firstName?: string;
   lastName?: string;
@@ -15,19 +18,29 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Payload;
 
-    // Basic validation
     if (!body.email || !body.message) {
       return NextResponse.json(
-        { ok: false, error: "Missing required fields." },
+        { ok: false, error: "Missing required fields: email and message are required." },
         { status: 400 }
       );
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const from = `Hughestown Self-Storage <no-reply@hughestownstorage.com>`;
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      return NextResponse.json(
+        { ok: false, error: "Missing RESEND_API_KEY on server." },
+        { status: 500 }
+      );
+    }
+
+    const resend = new Resend(resendApiKey);
+
+    // QUICK TEST SENDER: works without domain verification.
+    // After it works, switch to: `Hughestown Self-Storage <no-reply@hughestownstorage.com>`
+    const from = "Hughestown Self-Storage <onboarding@resend.dev>";
     const toOffice = "office@hughestownstorage.com";
 
-    const subjectOffice = `New Contact Form Message from ${body.firstName ?? ""} ${body.lastName ?? ""}`.trim();
+    const subjectOffice = `New Contact Form Message from ${[body.firstName, body.lastName].filter(Boolean).join(" ") || "Website Visitor"}`;
     const subjectUser = "We received your message — Hughestown Self-Storage";
 
     const htmlOffice = `
@@ -49,7 +62,7 @@ export async function POST(req: Request) {
     `;
 
     // Send to office
-    await resend.emails.send({
+    const officeRes = await resend.emails.send({
       from,
       to: toOffice,
       replyTo: body.email,
@@ -58,19 +71,32 @@ export async function POST(req: Request) {
     });
 
     // Auto-reply to user
-    await resend.emails.send({
+    const userRes = await resend.emails.send({
       from,
       to: body.email,
       subject: subjectUser,
       html: htmlUser,
     });
 
+    // If Resend returns errors, surface them
+    if ((officeRes as any)?.error || (userRes as any)?.error) {
+      return NextResponse.json(
+        { ok: false, error: (officeRes as any)?.error || (userRes as any)?.error },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err: any) {
-    console.error("Contact API error:", err);
+    // Return error to client for easier debugging (remove later if you prefer)
     return NextResponse.json(
-      { ok: false, error: "Failed to send message." },
+      { ok: false, error: err?.message || "Failed to send message." },
       { status: 500 }
     );
   }
+}
+
+// Optional: a simple GET to verify the route is deployed
+export async function GET() {
+  return NextResponse.json({ ok: true, route: "contact", method: "GET" });
 }
