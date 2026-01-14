@@ -234,11 +234,13 @@ export default function FAQsPage() {
             Email the Office
           </a>
           <Link
-            href="/rent-now"
-            className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-gray-800 font-medium hover:bg-gray-50"
-          >
-            Rent Now
-          </Link>
+  href="https://hughestownstorage.ccstorage.com/find_units"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-gray-800 font-medium hover:bg-gray-50"
+>
+  Rent Now
+</Link>
         </div>
 
         <p className="mt-6 text-xs text-gray-500">
