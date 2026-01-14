@@ -21,7 +21,7 @@ export default function DocumentHero() {
           </div>
           <div>
             <img 
-              src="/images/document-storage/doc-hero.jpg"
+              src="/images/storage/document-hero.jpg?v=1"
               alt="Document Storage"
               className="w-full rounded-lg shadow-lg object-cover h-[400px]"
             />
