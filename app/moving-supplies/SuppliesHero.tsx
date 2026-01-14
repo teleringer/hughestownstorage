@@ -20,11 +20,11 @@ export default function SuppliesHero() {
             </div>
           </div>
           <div>
-            <img 
-              src="https://readdy.ai/api/search-image?query=Moving%20supplies%20collection%20with%20cardboard%20boxes%2C%20packing%20tape%2C%20bubble%20wrap%2C%20moving%20blankets%2C%20packing%20materials%20organized%20display%2C%20storage%20facility%20supplies%2C%20professional%20moving%20equipment&width=600&height=400&seq=supplies1&orientation=landscape"
-              alt="Moving Supplies"
-              className="w-full rounded-lg shadow-lg object-cover h-[400px]"
-            />
+            <img
+  src="/images/products/supplies-hero.jpg"
+  alt="Moving Supplies"
+  className="w-full rounded-lg shadow-lg object-cover h-[400px]"
+/>
           </div>
         </div>
       </div>
