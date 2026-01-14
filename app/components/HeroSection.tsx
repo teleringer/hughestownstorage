@@ -7,19 +7,13 @@ export default function HeroSection() {
   return (
     <section 
       className="relative min-h-[600px] flex items-center"
-      <section
-  className="relative min-h-[600px] flex items-center"
-  style={{
-    // lighter gradient (0.12 → 0.22) and your local image
-    backgroundImage:
-      "linear-gradient(rgba(0,0,0,0.12), rgba(0,0,0,0.22)), url('/images/hero/homepage-hero.jpg?v=4')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat'
-  }}
->
-  {/* remove the extra dark overlay div entirely */}
-  {/* <div className="absolute inset-0 bg-black/20"></div> */}
+      style={{
+  backgroundImage:
+    "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.55)), url('/images/hero/homepage-hero.jpg?v=3')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+}}    >
       <div className="absolute inset-0 bg-black/20"></div>
       
       <div className="relative max-w-7xl mx-auto px-4 w-full">
