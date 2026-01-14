@@ -1,4 +1,3 @@
-
 'use client';
 
 export default function ProtectionPlans() {
@@ -9,7 +8,7 @@ export default function ProtectionPlans() {
       price: "$10",
       priceCents: "40",
       coverage: "$2,000",
-      popular: true,
+      popular: false,
       minimumCoverage: true
     },
     {
@@ -18,7 +17,7 @@ export default function ProtectionPlans() {
       price: "$14",
       priceCents: "56",
       coverage: "$3,000",
-      popular: false,
+      popular: true,          // middle is the highlighted option
       peaceOfMind: true
     },
     {
@@ -27,7 +26,7 @@ export default function ProtectionPlans() {
       price: "$20",
       priceCents: "80",
       coverage: "$5,000",
-      popular: true,
+      popular: false,
       maximumCoverage: true
     }
   ];
@@ -75,63 +74,78 @@ export default function ProtectionPlans() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {plans.map((plan, index) => (
-            <div key={index} className={`bg-white rounded-lg shadow-lg overflow-hidden relative ${
-              plan.popular ? 'ring-2 ring-red-600' : ''
-            }`}>
-              {plan.popular && (
-                <div className="absolute top-0 right-0 bg-red-600 text-white px-3 py-1 text-sm font-bold transform rotate-12 translate-x-2 -translate-y-1">
-                  MAXIMUM!
+          {plans.map((plan, index) => {
+            const badgeText = plan.minimumCoverage
+              ? "MINIMUM!"
+              : plan.maximumCoverage
+              ? "MAXIMUM!"
+              : plan.popular
+              ? "MOST POPULAR"
+              : null;
+
+            return (
+              <div
+                key={index}
+                className={`bg-white rounded-lg shadow-lg overflow-hidden relative ${
+                  plan.popular ? 'ring-2 ring-red-600' : ''
+                }`}
+              >
+                {badgeText && (
+                  <div className="absolute top-0 right-0 bg-red-600 text-white px-3 py-1 text-sm font-bold transform rotate-12 translate-x-2 -translate-y-1">
+                    {badgeText}
+                  </div>
+                )}
+
+                <div className="bg-gray-700 text-white text-center py-4">
+                  <h3 className="text-2xl font-bold">{plan.name}</h3>
+                  <p className="text-sm opacity-90">{plan.subtitle}</p>
                 </div>
-              )}
               
-              <div className="bg-gray-700 text-white text-center py-4">
-                <h3 className="text-2xl font-bold">{plan.name}</h3>
-                <p className="text-sm opacity-90">{plan.subtitle}</p>
-              </div>
-              
-              <div className="p-6 text-center">
-                <div className="mb-6">
-                  <span className="text-sm">$</span>
-                  <span className="text-5xl font-bold text-gray-900">{plan.price.replace('$', '')}</span>
-                  <span className="text-2xl text-gray-600">{plan.priceCents}</span>
-                  <div className="text-gray-600 mt-1">per month</div>
-                </div>
+                <div className="p-6 text-center">
+                  <div className="mb-6">
+                    <span className="text-sm">$</span>
+                    <span className="text-5xl font-bold text-gray-900">{plan.price.replace('$', '')}</span>
+                    <span className="text-2xl text-gray-600">{plan.priceCents}</span>
+                    <div className="text-gray-600 mt-1">per month</div>
+                  </div>
                 
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center justify-center">
-                    <i className="ri-check-line text-green-500 mr-3 w-5 h-5 flex items-center justify-center"></i>
-                    <span className="text-gray-700">Reimbursed up to {plan.coverage}</span>
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-center justify-center">
+                      <i className="ri-check-line text-green-500 mr-3 w-5 h-5 flex items-center justify-center"></i>
+                      <span className="text-gray-700">Reimbursed up to {plan.coverage}</span>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <i className="ri-check-line text-green-500 mr-3 w-5 h-5 flex items-center justify-center"></i>
+                      <span className="text-gray-700">No deductible</span>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <i className="ri-check-line text-green-500 mr-3 w-5 h-5 flex items-center justify-center"></i>
+                      <span className="text-gray-700">
+                        {plan.minimumCoverage && "Minimum coverage required"}
+                        {plan.peaceOfMind && "Peace of Mind"}
+                        {plan.maximumCoverage && "Maximum coverage available"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <i className="ri-check-line text-green-500 mr-3 w-5 h-5 flex items-center justify-center"></i>
-                    <span className="text-gray-700">No deductible</span>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <i className="ri-check-line text-green-500 mr-3 w-5 h-5 flex items-center justify-center"></i>
-                    <span className="text-gray-700">
-                      {plan.minimumCoverage && "Minimum coverage required"}
-                      {plan.peaceOfMind && "Peace of Mind"}
-                      {plan.maximumCoverage && "Maximum coverage available"}
-                    </span>
-                  </div>
-                </div>
                 
-                <button className={`w-full py-3 rounded-lg font-semibold whitespace-nowrap cursor-pointer transition-colors ${
-                  plan.popular 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
-                }`}>
-                  Select Plan
-                </button>
+                  <button
+                    className={`w-full py-3 rounded-lg font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+                      plan.popular
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
+                    }`}
+                  >
+                    Select Plan
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="bg-white rounded-lg p-8 shadow-lg mb-16">
           <h3 className="text-3xl font-bold text-gray-900 text-center mb-8">What Is Covered*</h3>
-          <p className="text-gray-700 text-center mb-8">Your protection plan covers losses caused by the following:</p>
+          <p className="text-xl text-gray-700 text-center mb-8">Your protection plan covers losses caused by the following:</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             {coveredItems.map((item, index) => (
@@ -192,11 +206,11 @@ export default function ProtectionPlans() {
               ))}
             </div>
             
-            <div className="text-center">
-              <img 
-                src="https://readdy.ai/api/search-image?query=Professional%20storage%20facility%20interior%20with%20organized%20boxes%20on%20pallets%20covered%20with%20protective%20materials%20clean%20organized%20storage%20units%20good%20lighting%20security%20cameras%20modern%20self%20storage%20best%20practices&width=400&height=300&seq=storage-tips&orientation=landscape"
+            <div className="text-center space-y-4">
+              <img
+                src="/images/tenant/storage-tips.jpg"
                 alt="Storage Tips"
-                className="w-full rounded-lg shadow-md object-cover h-[250px] mb-6"
+                className="w-full h-48 object-cover rounded-lg shadow-md"
               />
               <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer">
                 Download Brochure
