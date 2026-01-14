@@ -89,11 +89,11 @@ export default function ClaimsProcess() {
               </div>
             </div>
             <div className="text-center">
-              <img 
-                src="https://readdy.ai/api/search-image?query=Professional%20customer%20service%20representative%20helping%20with%20insurance%20claims%20modern%20office%20setting%20friendly%20helpful%20person%20with%20headset%20and%20computer%20blue%20color%20scheme%20trust%20and%20support%20theme&width=500&height=350&seq=claims1&orientation=landscape"
-                alt="Claims Support"
-                className="w-full rounded-lg shadow-lg object-cover h-[350px]"
-              />
+              <img
+  src="/images/tenant/claims.jpg"
+  alt="Claims Support"
+  className="w-full rounded-lg shadow-lg object-cover h-[350px]"
+/>
               <button className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer">
                 File Claim Online
               </button>
