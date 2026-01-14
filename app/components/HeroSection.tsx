@@ -8,11 +8,12 @@ export default function HeroSection() {
     <section 
       className="relative min-h-[600px] flex items-center"
       style={{
-        backgroundImage: `url('https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/57e9eff749ecdb9a1b3f6558060fd1c0.jfif')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
+  backgroundImage:
+    "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.55)), url('/images/hero/hero-bg.jpg?v=1')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+}}
     >
       <div className="absolute inset-0 bg-black/20"></div>
       
