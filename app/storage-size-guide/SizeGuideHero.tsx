@@ -20,11 +20,11 @@ export default function SizeGuideHero() {
             </div>
           </div>
           <div>
-            <img 
-              src="https://readdy.ai/api/search-image?query=Various%20storage%20unit%20sizes%20comparison%20showing%20small%20medium%20and%20large%20storage%20units%20organized%20outdoor%20self%20storage%20facility%20perspective%20view%20clean%20modern%20design&width=600&height=400&seq=sizes1&orientation=landscape"
-              alt="Storage Unit Sizes"
-              className="w-full rounded-lg shadow-lg object-cover h-[400px]"
-            />
+            <img
+  src="/images/storage/sizes-hero.jpg"
+  alt="Storage Unit Size Comparison"
+  className="w-full rounded-lg shadow-lg object-cover h-[400px]"
+/>
           </div>
         </div>
       </div>
