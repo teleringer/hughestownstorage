@@ -6,16 +6,12 @@ export default function Footer() {
   return (
     <footer className="bg-black text-white py-12">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Company Logo and Certifications */}
-          <div className="mb-6 flex justify-center md:justify-start">
-  <a href="/" aria-label="Hughestown Self-Storage — Home" className="inline-block">
-    <img
-      src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png"
-      alt="Hughestown Self-Storage"
-      className="h-16 object-contain cursor-pointer"
-    />
-  </a>
+        <div className="mb-6 flex justify-center md:justify-start">
+  <img 
+    src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png" 
+    alt="Hughestown Self-Storage" 
+    className="h-16 object-contain"
+  />
 </div>
 
             {/* Certification Logos - Vertically aligned with proper spacing */}
