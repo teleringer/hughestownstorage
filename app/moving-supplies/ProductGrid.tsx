@@ -7,84 +7,84 @@ export default function ProductGrid() {
       size: '16" x 12" x 12"',
       price: '$2.99',
       description: 'Perfect for books, records, and heavy items',
-      image: 'https://readdy.ai/api/search-image?query=Small%20cardboard%20moving%20box%20brown%20corrugated%20packaging%20box%20for%20books%20and%20heavy%20items%20clean%20white%20background%20product%20photo&width=300&height=300&seq=box1&orientation=squarish'
+      image: '/images/products/small-box.jpg'
     },
     {
       name: 'Medium Moving Box',
       size: '18" x 14" x 12"',
       price: '$3.49',
       description: 'Ideal for clothes, linens, and medium items',
-      image: 'https://readdy.ai/api/search-image?query=Medium%20cardboard%20moving%20box%20brown%20corrugated%20packaging%20box%20for%20clothes%20and%20linens%20clean%20white%20background%20product%20photo&width=300&height=300&seq=box2&orientation=squarish'
+      image: '/images/products/medium-box.jpg'
     },
     {
       name: 'Large Moving Box',
       size: '24" x 18" x 18"',
       price: '$4.99',
       description: 'Great for lightweight bulky items like pillows',
-      image: 'https://readdy.ai/api/search-image?query=Large%20cardboard%20moving%20box%20brown%20corrugated%20packaging%20box%20for%20bulky%20lightweight%20items%20clean%20white%20background%20product%20photo&width=300&height=300&seq=box3&orientation=squarish'
+      image: '/images/products/large-box.jpg'
     },
     {
       name: 'Wardrobe Box',
       size: '24" x 21" x 46"',
       price: '$12.99',
       description: 'Tall box with hanging bar for clothes',
-      image: 'https://readdy.ai/api/search-image?query=Tall%20wardrobe%20moving%20box%20with%20hanging%20bar%20for%20clothes%20brown%20cardboard%20box%20clean%20white%20background%20product%20photo&width=300&height=300&seq=wardrobe1&orientation=squarish'
+      image: '/images/products/wardrobe-box.jpg'
     },
     {
       name: 'Bubble Wrap',
       size: '12" x 50ft Roll',
       price: '$8.99',
       description: 'Protective wrapping for fragile items',
-      image: 'https://readdy.ai/api/search-image?query=Bubble%20wrap%20roll%20clear%20plastic%20protective%20packaging%20material%20for%20fragile%20items%20clean%20white%20background%20product%20photo&width=300&height=300&seq=bubble1&orientation=squarish'
+      image: '/images/products/bubble-wrap.jpg'
     },
     {
       name: 'Packing Tape',
       size: '2" x 55 yards',
       price: '$3.99',
       description: 'Heavy-duty adhesive tape for sealing boxes',
-      image: 'https://readdy.ai/api/search-image?query=Clear%20packing%20tape%20roll%20heavy%20duty%20adhesive%20tape%20for%20sealing%20moving%20boxes%20clean%20white%20background%20product%20photo&width=300&height=300&seq=tape1&orientation=squarish'
+      image: '/images/products/packing-tape.jpg'
     },
     {
       name: 'Moving Blankets',
       size: '72" x 80"',
       price: '$19.99',
       description: 'Padded protection for furniture',
-      image: 'https://readdy.ai/api/search-image?query=Moving%20blanket%20padded%20furniture%20protection%20blanket%20blue%20or%20gray%20thick%20protective%20covering%20clean%20white%20background%20product%20photo&width=300&height=300&seq=blanket1&orientation=squarish'
+      image: '/images/products/moving-blanket.jpg'
     },
     {
       name: 'Packing Paper',
       size: '25 lb Bundle',
       price: '$12.99',
       description: 'Clean newsprint for wrapping items',
-      image: 'https://readdy.ai/api/search-image?query=Stack%20of%20packing%20paper%20newsprint%20white%20paper%20bundle%20for%20wrapping%20items%20during%20moving%20clean%20white%20background%20product%20photo&width=300&height=300&seq=paper1&orientation=squarish'
+      image: '/images/products/packing-paper.jpg'
     },
     {
       name: 'Mattress Bag',
       size: 'Queen Size',
       price: '$7.99',
       description: 'Plastic protection for mattresses',
-      image: 'https://readdy.ai/api/search-image?query=Clear%20plastic%20mattress%20bag%20protective%20cover%20for%20queen%20size%20mattress%20moving%20and%20storage%20clean%20white%20background%20product%20photo&width=300&height=300&seq=mattress1&orientation=squarish'
+      image: '/images/products/mattress-bag.jpg'
     },
     {
       name: 'Box Cutter',
       size: 'Utility Knife',
       price: '$4.99',
       description: 'Sharp blade for cutting tape and boxes',
-      image: 'https://readdy.ai/api/search-image?query=Utility%20box%20cutter%20knife%20yellow%20handle%20sharp%20blade%20cutting%20tool%20for%20moving%20supplies%20clean%20white%20background%20product%20photo&width=300&height=300&seq=cutter1&orientation=squarish'
+      image: '/images/products/box-cutter.jpg'
     },
     {
       name: 'Marker Set',
       size: 'Pack of 4',
       price: '$5.99',
       description: 'Permanent markers for labeling boxes',
-      image: 'https://readdy.ai/api/search-image?query=Set%20of%20permanent%20markers%20black%20markers%20for%20labeling%20moving%20boxes%20office%20supplies%20clean%20white%20background%20product%20photo&width=300&height=300&seq=markers1&orientation=squarish'
+      image: '/images/products/markers.jpg'
     },
     {
       name: 'Padlock',
       size: 'Heavy Duty',
       price: '$12.99',
       description: 'Secure lock for storage unit',
-      image: 'https://readdy.ai/api/search-image?query=Heavy%20duty%20padlock%20security%20lock%20for%20storage%20unit%20metal%20lock%20with%20keys%20clean%20white%20background%20product%20photo&width=300&height=300&seq=lock1&orientation=squarish'
+      image: '/images/products/padlock.jpg'
     }
   ];
 
