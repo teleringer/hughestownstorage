@@ -47,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <Script id="ld-json" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }} />
+        <link rel="icon" href="/icon.png?v=2" sizes="any" />
       </head>
       <body>
         <Header />
