@@ -21,7 +21,7 @@ export default function ConferenceHero() {
           </div>
           <div>
             <img 
-              src="https://readdy.ai/api/search-image?query=Professional%20conference%20room%20with%20modern%20furniture%2C%20large%20meeting%20table%2C%20comfortable%20chairs%2C%20presentation%20screen%2C%20natural%20lighting%2C%20business%20meeting%20space%2C%20corporate%20environment%2C%20clean%20and%20organized&width=600&height=400&seq=conf1&orientation=landscape"
+              src="/images/conference/conf-hero.jpg"
               alt="Conference Room"
               className="w-full rounded-lg shadow-lg object-cover h-[400px]"
             />
