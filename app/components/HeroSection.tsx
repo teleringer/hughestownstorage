@@ -9,7 +9,7 @@ export default function HeroSection() {
       className="relative min-h-[600px] flex items-center"
       style={{
   backgroundImage:
-    "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.55)), url('/images/hero/homepage-hero.jpg?v=1')",
+    "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.55)), url('/images/hero/homepage-hero.jpg?v=3')",
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat'
