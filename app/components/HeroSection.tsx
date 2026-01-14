@@ -5,16 +5,18 @@ import Link from 'next/link';
 
 export default function HeroSection() {
   return (
-    <section 
-      className="relative min-h-[600px] flex items-center"
-      style={{
-  backgroundImage:
-    "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.55)), url('/images/hero/homepage-hero.jpg?v=3')",
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat'
-}}    >
-      <div className="absolute inset-0 bg-black/20"></div>
+    <section
+  className="relative min-h-[600px] flex items-center"
+  style={{
+    backgroundImage:
+      "linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.18)), url('/images/hero/homepage-hero.jpg?v=2')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  }}
+>
+  <div className="absolute inset-0 bg-black/5"></div>
+
       
       <div className="relative max-w-7xl mx-auto px-4 w-full">
         <div className="max-w-2xl md:max-w-2xl mx-auto md:mx-0 text-center md:text-left">
