@@ -1,4 +1,3 @@
-
 'use client';
 
 import SuppliesHero from './SuppliesHero';
@@ -10,8 +9,16 @@ export default function MovingSupplies() {
     <div className="min-h-screen overflow-x-hidden">
       <main className="pt-20 md:pt-40">
         <SuppliesHero />
-        <ProductGrid />
-        <PackingTips />
+
+        {/* Anchor target for "Shop Now" */}
+        <section id="shop" className="scroll-mt-28">
+          <ProductGrid />
+        </section>
+
+        {/* Anchor target for "Packing Tips" */}
+        <section id="tips" className="scroll-mt-28">
+          <PackingTips />
+        </section>
       </main>
     </div>
   );

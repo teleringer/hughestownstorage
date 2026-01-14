@@ -11,13 +11,13 @@ export default function SuppliesHero() {
               Everything you need for a successful move. Quality packing supplies at affordable prices, available right here at our facility.
             </p>
             <div className="flex space-x-4">
-              <button className="bg-white text-orange-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
-                Shop Now
-              </button>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-orange-600 whitespace-nowrap cursor-pointer">
-                Packing Tips
-              </button>
-            </div>
+  <a href="#shop" className="bg-white text-orange-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
+    Shop Now
+  </a>
+  <a href="#tips" className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-orange-600 whitespace-nowrap cursor-pointer">
+    Packing Tips
+  </a>
+</div>
           </div>
           <div>
             <img
