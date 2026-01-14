@@ -6,67 +6,62 @@ export default function Footer() {
   return (
     <footer className="bg-black text-white py-12">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 flex justify-center md:justify-start">
-  <img 
-    src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png" 
-    alt="Hughestown Self-Storage" 
-    className="h-16 object-contain"
-  />
-</div>
+        {/* Top grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Logo + affiliations */}
+          <div className="text-center md:text-left">
+            <div className="mb-6 flex justify-center md:justify-start">
+              <Link href="/" aria-label="Back to home">
+                <img
+                  src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png"
+                  alt="Hughestown Self-Storage"
+                  className="h-16 object-contain cursor-pointer"
+                />
+              </Link>
+            </div>
 
-            {/* Certification Logos - Vertically aligned with proper spacing */}
+            {/* Certification Logos - stacked */}
             <div className="flex flex-col items-center md:items-start space-y-4">
               <a
                 href="https://www.paselfstorage.org/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white p-3 md:p-2 rounded cursor-pointer"
-                aria-label="PA Self Storage Association (opens in new tab)"
               >
                 <img
                   src="/affiliations/pssa.png"
-                  alt="PA Self Storage Association"
-                  width={240}
-                  height={90}
-                  className="h-16 md:h-10 w-auto object-contain"
+                  alt="PASSA"
+                  className="h-16 md:h-10 object-contain"
                 />
               </a>
-
               <a
                 href="https://www.selfstorage.org/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white p-3 md:p-2 rounded cursor-pointer"
-                aria-label="Self Storage Association (opens in new tab)"
               >
                 <img
                   src="/affiliations/ssa.png"
                   alt="Self Storage Association"
-                  width={240}
-                  height={90}
-                  className="h-16 md:h-10 w-auto object-contain"
+                  className="h-16 md:h-10 object-contain"
                 />
               </a>
-
               <a
                 href="https://www.insideselfstorage.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white p-3 md:p-2 rounded cursor-pointer"
-                aria-label="Inside Self-Storage (opens in new tab)"
               >
                 <img
                   src="/affiliations/iss.png"
-                  alt="Inside Self-Storage"
-                  width={240}
-                  height={90}
-                  className="h-16 md:h-10 w-auto object-contain"
+                  alt="ISS - Inside Self Storage"
+                  className="h-16 md:h-10 object-contain"
                 />
               </a>
             </div>
           </div>
 
-          {/* Address and Follow Us */}
+          {/* Address + Follow Us */}
           <div>
             <h3 className="text-orange-500 text-lg font-semibold mb-4">Address</h3>
             <div className="text-white mb-6">
@@ -83,11 +78,11 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-white hover:text-orange-400 cursor-pointer"
               >
-                <i className="ri-twitter-x-line mr-2 w-5 h-5 flex items-center justify-center"></i>
+                <i className="ri-twitter-x-line mr-2 w-5 h-5 flex items-center justify-center" />
                 @HughestownSS
               </a>
 
-              {/* Map Links - 75% width and left justified on desktop, centered on mobile */}
+              {/* Map Links */}
               <div className="mt-6 space-y-2 flex flex-col items-center md:items-start">
                 <a
                   href="https://maps.app.goo.gl/MN215YU6qtMzG3FJ7"
@@ -95,16 +90,16 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 cursor-pointer flex items-center justify-center w-3/4"
                 >
-                  <i className="ri-map-pin-line mr-2"></i>
+                  <i className="ri-map-pin-line mr-2" />
                   Directions (Google Maps)
                 </a>
                 <a
-                  href="https://maps.apple.com/?daddr=41.332021,-75.776151&q=Hughestown%20Self-Storage&dirflg=d"
+                  href="https://maps.apple.com/?ll=41.332021,-75.776151&q=Hughestown%20Self-Storage"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 cursor-pointer flex items-center justify-center w-3/4"
                 >
-                  <i className="ri-map-pin-line mr-2"></i>
+                  <i className="ri-map-pin-line mr-2" />
                   Directions (Apple Maps)
                 </a>
               </div>
@@ -143,8 +138,26 @@ export default function Footer() {
             <h3 className="text-orange-500 text-lg font-semibold mb-4">Menu</h3>
             <ul className="space-y-2 text-white">
               <li><Link href="/" className="hover:text-orange-400 cursor-pointer">Home</Link></li>
-              <li><Link href="https://hughestownstorage.ccstorage.com/sign-in" target="_blank" className="hover:text-orange-400 cursor-pointer">Sign In</Link></li>
-              <li><Link href="https://hughestownstorage.ccstorage.com/find_units" target="blank" className="hover:text-orange-400 cursor-pointer">Rent Now</Link></li>
+              <li>
+                <a
+                  href="https://hughestownstorage.ccstorage.com/sign-in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-400 cursor-pointer"
+                >
+                  Sign In
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://hughestownstorage.ccstorage.com/find_units"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-400 cursor-pointer"
+                >
+                  Rent Now
+                </a>
+              </li>
               <li><Link href="/#about" className="hover:text-orange-400 cursor-pointer">About Us</Link></li>
               <li><Link href="/conference-room-rental" className="hover:text-orange-400 cursor-pointer">Conference Room Rental</Link></li>
               <li><Link href="/document-storage" className="hover:text-orange-400 cursor-pointer">Document Storage</Link></li>
@@ -177,15 +190,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Copyright and Links */}
+        {/* Copyright */}
         <div className="mt-8 pt-6 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center text-gray-400">
-          <p className="text-sm">Copyright ©2025. Owned & Operated by S3 Storage Group, LLC. All rights Reserved.</p>
+          <p className="text-sm">
+            Copyright ©2025. Owned & Operated by S3 Storage Group, LLC. All rights Reserved.
+          </p>
           <div className="flex space-x-4 mt-4 md:mt-0 text-xs">
             <Link href="/privacy-policy" className="hover:text-white cursor-pointer">Privacy Policy</Link>
             <span>|</span>
             <Link href="/terms" className="hover:text-white cursor-pointer">Terms</Link>
             <span>|</span>
-            <a href="https://teleringer.com" target="_blank" rel="noopener noreferrer" className="hover:text-white cursor-pointer">
+            <a
+              href="https://teleringer.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white cursor-pointer"
+            >
               Website Design by Teleringer.com
             </a>
           </div>
