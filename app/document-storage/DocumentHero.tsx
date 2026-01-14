@@ -21,7 +21,7 @@ export default function DocumentHero() {
           </div>
           <div>
             <img 
-              src="https://readdy.ai/api/search-image?query=Professional%20document%20storage%20facility%20with%20organized%20filing%20systems%2C%20banker%20boxes%2C%20clean%20shelving%20units%2C%20secure%20storage%20room%2C%20business%20documents%2C%20climate%20controlled%20environment%2C%20professional%20archival%20storage&width=600&height=400&seq=doc1&orientation=landscape"
+              src="/images/document-storage/doc-hero.jpg"
               alt="Document Storage"
               className="w-full rounded-lg shadow-lg object-cover h-[400px]"
             />
