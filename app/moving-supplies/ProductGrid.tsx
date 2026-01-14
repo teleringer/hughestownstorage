@@ -7,21 +7,21 @@ export default function ProductGrid() {
       size: '16" x 12" x 12"',
       price: '$2.99',
       description: 'Perfect for books, records, and heavy items',
-      image: '/images/products/small-box.jpg'
+      image: '/images/products/box-small.jpg'
     },
     {
       name: 'Medium Moving Box',
       size: '18" x 14" x 12"',
       price: '$3.49',
       description: 'Ideal for clothes, linens, and medium items',
-      image: '/images/products/medium-box.jpg'
+      image: '/images/products/box-medium.jpg'
     },
     {
       name: 'Large Moving Box',
       size: '24" x 18" x 18"',
       price: '$4.99',
       description: 'Great for lightweight bulky items like pillows',
-      image: '/images/products/large-box.jpg'
+      image: '/images/products/box-large.jpg'
     },
     {
       name: 'Wardrobe Box',
