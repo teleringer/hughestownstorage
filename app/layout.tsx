@@ -47,9 +47,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <Script id="ld-json" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }} />
-        <link rel="icon" href="/favicon.ico?v=5" />
-<link rel="shortcut icon" href="/favicon.ico?v=5" />
-<link rel="apple-touch-icon" href="/icon.png?v=5" />
       </head>
       <body>
         <Header />
