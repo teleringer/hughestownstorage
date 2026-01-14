@@ -37,11 +37,11 @@ export default function ProtectionHero() {
           </div>
           
           <div>
-            <img 
-              src="https://readdy.ai/api/search-image?query=Professional%20insurance%20protection%20concept%20with%20shield%20security%20icon%20protecting%20valuable%20items%20storage%20facility%20background%20modern%20clean%20design%20trust%20and%20security%20theme%20blue%20color%20scheme&width=600&height=400&seq=protection1&orientation=landscape"
-              alt="Tenant Protection"
-              className="w-full rounded-lg shadow-lg object-cover h-[400px]"
-            />
+            <img
+  src="/images/tenant/protection-hero.jpg"
+  alt="Storage Protection Plans"
+  className="w-full rounded-lg shadow-lg object-cover h-[400px]"
+/>
           </div>
         </div>
       </div>
