@@ -135,7 +135,7 @@ export default function ProtectionPlans() {
                         : 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
                     }`}
                   >
-                    Select Plan
+                    Plan
                   </button>
                 </div>
               </div>
@@ -212,10 +212,7 @@ export default function ProtectionPlans() {
                 alt="Storage Tips"
                 className="w-full h-48 object-cover rounded-lg shadow-md"
               />
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer">
-                Download Brochure
-              </button>
-            </div>
+                          </div>
           </div>
         </div>
       </div>

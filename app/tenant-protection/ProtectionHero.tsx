@@ -15,9 +15,7 @@ export default function ProtectionHero() {
               <a href="#plans" className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
   View Plans
 </a>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-blue-900 whitespace-nowrap cursor-pointer text-center">
-                Download Brochure
-              </button>
+              
             </div>
             
             <div className="grid grid-cols-3 gap-8 mt-12">
