@@ -5,7 +5,7 @@ export default function ClaimsProcess() {
     {
       step: "1",
       title: "Report Your Claim",
-      description: "Call our 24/7 claims hotline or submit online. Provide basic information about the incident.",
+      description: "Call our office 8am-6pm. Provide basic information about the incident.",
       icon: "ri-phone-line"
     },
     {
@@ -17,7 +17,7 @@ export default function ClaimsProcess() {
     {
       step: "3",
       title: "Claims Investigation",
-      description: "Our claims specialist will review your case and may schedule an inspection if needed.",
+      description: "Our claims agent will review your case and may schedule an inspection if needed.",
       icon: "ri-search-line"
     },
     {
@@ -31,7 +31,7 @@ export default function ClaimsProcess() {
   const faqs = [
     {
       question: "How quickly will my claim be processed?",
-      answer: "Most claims are processed within 5-7 business days. Complex claims may take up to 14 days."
+      answer: "Most claims are processed within 7-10 business days. Complex claims may take up to 30 days or more."
     },
     {
       question: "What documentation do I need for a claim?",
@@ -42,8 +42,8 @@ export default function ClaimsProcess() {
       answer: "No, all our protection plans come with zero deductible for your convenience."
     },
     {
-      question: "Can I file a claim online?",
-      answer: "Yes, you can file claims online 24/7 through our customer portal or mobile app."
+      question: "How do I file a claim?",
+      answer: "You can file a claim by contacting our office 8am-6pm EST to file a claim."
     }
   ];
 
@@ -75,16 +75,16 @@ export default function ClaimsProcess() {
             <div>
               <h3 className="text-3xl font-bold text-gray-900 mb-4">Need to File a Claim?</h3>
               <p className="text-lg text-gray-700 mb-6">
-                Our claims specialists are available 24/7 to help you through the process. Get started now or contact us for assistance.
+                Our office can help you through the claims process. Contact us for assistance.
               </p>
               <div className="space-y-4">
                 <div className="flex items-center">
                   <i className="ri-phone-line text-blue-600 mr-3 w-6 h-6 flex items-center justify-center"></i>
-                  <span className="text-lg font-semibold">1-800-CLAIMS-1</span>
+                  <span className="text-lg font-semibold">570-362-6150</span>
                 </div>
                 <div className="flex items-center">
                   <i className="ri-mail-line text-blue-600 mr-3 w-6 h-6 flex items-center justify-center"></i>
-                  <span className="text-lg">claims@hughestownselfstorage.com</span>
+                  <span className="text-lg">office@hughestownselfstorage.com</span>
                 </div>
               </div>
             </div>
@@ -94,9 +94,7 @@ export default function ClaimsProcess() {
   alt="Claims Support"
   className="w-full rounded-lg shadow-lg object-cover h-[350px]"
 />
-              <button className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer">
-                File Claim Online
-              </button>
+              
             </div>
           </div>
         </div>
