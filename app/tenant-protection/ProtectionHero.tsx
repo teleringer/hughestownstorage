@@ -12,9 +12,9 @@ export default function ProtectionHero() {
               Protect your stored belongings with comprehensive coverage options. Choose from three affordable protection plans with no deductible and complete peace of mind.
             </p>
             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-              <button className="bg-white text-blue-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer text-center">
-                View Plans
-              </button>
+              <a href="#plans" className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
+  View Plans
+</a>
               <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-blue-900 whitespace-nowrap cursor-pointer text-center">
                 Download Brochure
               </button>
