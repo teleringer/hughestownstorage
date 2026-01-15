@@ -84,7 +84,12 @@ export default function ClaimsProcess() {
                 </div>
                 <div className="flex items-center">
                   <i className="ri-mail-line text-blue-600 mr-3 w-6 h-6 flex items-center justify-center"></i>
-                  <span className="text-lg">office@hughestownselfstorage.com</span>
+                  <span className="text-lg"><a
+    href="mailto:office@hughestownstorage.com"
+    className="text-blue-600 hover:underline"
+  >
+    office@hughestownstorage.com
+  </a></span>
                 </div>
               </div>
             </div>
