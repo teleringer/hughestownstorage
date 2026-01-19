@@ -28,7 +28,7 @@ export default function BookingSection() {
     setStatus({ state: 'submitting' });
 console.log("SUBMIT CLICKED", formData);
     try {
-      const res = await fetch('/api/conference-room-booking', {
+      const res = await fetch('/api/conference-room-rental', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
