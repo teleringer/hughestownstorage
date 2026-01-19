@@ -26,7 +26,7 @@ export default function BookingSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ state: 'submitting' });
-
+console.log("SUBMIT CLICKED", formData);
     try {
       const res = await fetch('/api/conference-room-booking', {
         method: 'POST',
@@ -83,7 +83,7 @@ export default function BookingSection() {
   };
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section id="book" className="py-16 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">
@@ -254,10 +254,11 @@ export default function BookingSection() {
 
             <div className="text-center">
               <button
-                type="submit"
-                disabled={status.state === 'submitting'}
-                className="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-              >
+  type="submit"
+  onClick={(e) => e.stopPropagation()}
+  disabled={status.state === 'submitting'}
+  className="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 disabled:opacity-60"
+>
                 {status.state === 'submitting'
                   ? 'Sending…'
                   : 'Submit Booking Request'}
