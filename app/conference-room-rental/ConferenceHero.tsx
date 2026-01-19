@@ -8,19 +8,30 @@ export default function ConferenceHero() {
           <div>
             <h1 className="text-5xl font-bold mb-6">Conference Room Rental</h1>
             <p className="text-xl mb-8">
-              Professional meeting space available for rent by the hour or day. Perfect for business meetings, training sessions, and corporate events.
+              Professional meeting space available for rent by the hour or day.
+              Perfect for business meetings, training sessions, and corporate
+              events.
             </p>
-            <div className="flex space-x-4">
-              <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
+
+            <div className="flex flex-wrap gap-4">
+              <a
+                href="#book"
+                className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap"
+              >
                 Book Now
-              </button>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-blue-600 whitespace-nowrap cursor-pointer">
+              </a>
+
+              <a
+                href="#pricing"
+                className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-blue-600 whitespace-nowrap"
+              >
                 View Pricing
-              </button>
+              </a>
             </div>
           </div>
+
           <div>
-            <img 
+            <img
               src="/images/conference/conf-hero.jpg"
               alt="Conference Room"
               className="w-full rounded-lg shadow-lg object-cover h-[400px]"

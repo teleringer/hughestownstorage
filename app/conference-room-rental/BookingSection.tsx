@@ -1,6 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+
+type Status =
+  | { state: 'idle' }
+  | { state: 'submitting' }
+  | { state: 'success'; message: string }
+  | { state: 'error'; message: string };
 
 export default function BookingSection() {
   const [formData, setFormData] = useState({
@@ -12,18 +18,67 @@ export default function BookingSection() {
     endTime: '',
     attendees: '',
     purpose: '',
-    message: ''
+    message: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [status, setStatus] = useState<Status>({ state: 'idle' });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Booking request:', formData);
+    setStatus({ state: 'submitting' });
+
+    try {
+      const res = await fetch('/api/conference-room-rental', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const json = await res.json().catch(() => ({} as any));
+      console.log('POST /api/conference-room-rental ->', res.status, json);
+
+      if (!res.ok || json.ok === false) {
+        setStatus({
+          state: 'error',
+          message:
+            (json && json.error) ||
+            `Failed to send (status ${res.status}). Please try again.`,
+        });
+        return;
+      }
+
+      setStatus({
+        state: 'success',
+        message:
+          'Thanks! Your booking request has been sent. We will follow up to confirm availability.',
+      });
+
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        date: '',
+        startTime: '',
+        endTime: '',
+        attendees: '',
+        purpose: '',
+        message: '',
+      });
+    } catch (err: any) {
+      console.error(err);
+      setStatus({
+        state: 'error',
+        message: err?.message || 'Network error. Please try again.',
+      });
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -31,15 +86,33 @@ export default function BookingSection() {
     <section className="py-16 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">Book Your Meeting</h2>
-          <p className="text-lg text-gray-600">Fill out the form below to reserve our conference room</p>
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">
+            Book Your Meeting
+          </h2>
+          <p className="text-lg text-gray-600">
+            Fill out the form below to reserve our conference room
+          </p>
         </div>
 
+        {/* Status Messages */}
+        {status.state === 'success' && (
+          <div className="mb-6 rounded-lg border border-green-300 bg-green-50 p-4 text-green-900 shadow-sm">
+            {status.message}
+          </div>
+        )}
+        {status.state === 'error' && (
+          <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-red-900 shadow-sm">
+            {status.message}
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   name="name"
@@ -50,7 +123,9 @@ export default function BookingSection() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -64,7 +139,9 @@ export default function BookingSection() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
                 <input
                   type="tel"
                   name="phone"
@@ -75,7 +152,9 @@ export default function BookingSection() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Preferred Date
+                </label>
                 <input
                   type="date"
                   name="date"
@@ -89,7 +168,9 @@ export default function BookingSection() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Time
+                </label>
                 <input
                   type="time"
                   name="startTime"
@@ -100,7 +181,9 @@ export default function BookingSection() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Time
+                </label>
                 <input
                   type="time"
                   name="endTime"
@@ -111,7 +194,9 @@ export default function BookingSection() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Number of Attendees</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of Attendees
+                </label>
                 <input
                   type="number"
                   name="attendees"
@@ -126,7 +211,9 @@ export default function BookingSection() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Purpose of Meeting</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Purpose of Meeting
+              </label>
               <select
                 name="purpose"
                 value={formData.purpose}
@@ -144,7 +231,9 @@ export default function BookingSection() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Additional Requirements</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Additional Requirements
+              </label>
               <textarea
                 name="message"
                 value={formData.message}
@@ -154,15 +243,20 @@ export default function BookingSection() {
                 placeholder="Any special requests or requirements..."
                 maxLength={500}
               />
-              <p className="text-sm text-gray-500 mt-1">Maximum 500 characters</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Maximum 500 characters
+              </p>
             </div>
 
             <div className="text-center">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer"
+                disabled={status.state === 'submitting'}
+                className="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Submit Booking Request
+                {status.state === 'submitting'
+                  ? 'Sending…'
+                  : 'Submit Booking Request'}
               </button>
             </div>
           </form>
