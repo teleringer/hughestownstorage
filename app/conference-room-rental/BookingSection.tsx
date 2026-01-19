@@ -28,14 +28,14 @@ export default function BookingSection() {
     setStatus({ state: 'submitting' });
 
     try {
-      const res = await fetch('/api/conference-room-rental', {
+      const res = await fetch('/api/conference-room-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       const json = await res.json().catch(() => ({} as any));
-      console.log('POST /api/conference-room-rental ->', res.status, json);
+      console.log('POST /api/conference-room-booking ->', res.status, json);
 
       if (!res.ok || json.ok === false) {
         setStatus({
@@ -74,12 +74,12 @@ export default function BookingSection() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -122,6 +122,7 @@ export default function BookingSection() {
                   required
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
@@ -151,6 +152,7 @@ export default function BookingSection() {
                   required
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Preferred Date
@@ -180,6 +182,7 @@ export default function BookingSection() {
                   required
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   End Time
@@ -193,6 +196,7 @@ export default function BookingSection() {
                   required
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Number of Attendees
