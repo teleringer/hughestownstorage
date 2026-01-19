@@ -10,14 +10,7 @@ export default function DocumentHero() {
             <p className="text-xl mb-8">
               Secure, climate-controlled storage for your important business and personal documents. Keep your files safe and easily accessible.
             </p>
-            <div className="flex space-x-4">
-              <button className="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
-                Get Quote
-              </button>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-green-600 whitespace-nowrap cursor-pointer">
-                Learn More
-              </button>
-            </div>
+            
           </div>
           <div>
             <img 
