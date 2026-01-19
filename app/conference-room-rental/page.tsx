@@ -1,4 +1,3 @@
-
 'use client';
 
 import ConferenceHero from './ConferenceHero';
@@ -10,8 +9,16 @@ export default function ConferenceRoomRental() {
     <div className="min-h-screen">
       <main className="pt-20 md:pt-40">
         <ConferenceHero />
-        <RoomDetails />
-        <BookingSection />
+
+        {/* Anchor target for "View Pricing" */}
+        <section id="pricing">
+          <RoomDetails />
+        </section>
+
+        {/* Anchor target for "Book Now" */}
+        <section id="book">
+          <BookingSection />
+        </section>
       </main>
     </div>
   );
