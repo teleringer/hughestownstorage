@@ -5,14 +5,17 @@ import SizeGuideHero from './SizeGuideHero';
 import SizeComparison from './SizeComparison';
 import SizeCalculator from './SizeCalculator';
 
-export default function StorageSizeGuide() {
+export default function Page() {
   return (
-    <div className="min-h-screen overflow-x-hidden">
-      <main className="pt-20 md:pt-40">
-        <SizeGuideHero />
-        <SizeComparison />
+    <main className="pt-20 md:pt-40 scroll-smooth">
+      <SizeGuideHero />
+      <section id="calculator">
         <SizeCalculator />
-      </main>
-    </div>
+      </section>
+      <section id="pricing">
+        <SizeComparison />
+      </section>
+    </main>
   );
 }
+

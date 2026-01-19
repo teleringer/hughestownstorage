@@ -11,12 +11,18 @@ export default function SizeGuideHero() {
               Find the perfect storage unit size for your needs. Our comprehensive guide helps you choose the right space and save money.
             </p>
             <div className="flex space-x-4">
-              <button className="bg-white text-teal-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer">
-                Size Calculator
-              </button>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-teal-600 whitespace-nowrap cursor-pointer">
-                View Pricing
-              </button>
+              <a
+  href="#calculator"
+  className="bg-white text-emerald-700 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 whitespace-nowrap cursor-pointer inline-flex items-center justify-center"
+>
+  Size Calculator
+</a>
+              <a
+  href="#pricing"
+  className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-emerald-700 whitespace-nowrap cursor-pointer inline-flex items-center justify-center"
+>
+  View Pricing
+</a>
             </div>
           </div>
           <div>
