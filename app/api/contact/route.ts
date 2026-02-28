@@ -236,7 +236,7 @@ function buildReservationEmailHTML(opts: {
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
-<div style="margin-top:18px; font-size:9px; color:#888; line-height:1.5;">
+<div style="margin-top:18px; font-size:10px; color:#888; line-height:1.5;">
   <b>Confidentiality Notice:</b><br/>
   This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage. 
   If you are not the intended recipient, please notify the sender immediately and permanently delete this message and any attachments from your system. 
@@ -278,7 +278,7 @@ export async function POST(req: Request) {
     const resend = new Resend(RESEND_API_KEY);
 
     const isReservation =
-      inboundSubject.startsWith("📦 HSS Moving Supplies Order") ||
+      inboundSubject.startsWith("HSS Moving Supplies Order") ||
       /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
 
     const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
