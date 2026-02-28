@@ -125,10 +125,11 @@ function buildReservationEmailHTML(opts: {
     <!-- Header -->
     <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #eee; background:#ffffff;">
   <tr>
-    <td style="padding:16px 18px;">
+    <td style="padding:16px 18px 16px 18px;">
       <img src="${escapeHtml(opts.logoUrl)}" alt="Hughestown Self-Storage" style="display:block; height:36px; width:auto;" />
     </td>
-    <td align="right" style="padding:16px 18px; font-size:12px; color:#444; font-weight:800; white-space:nowrap;">
+    <td align="right"
+        style="padding-top:16px; padding-bottom:16px; padding-right:18px; padding-left:0; font-size:12px; color:#444; font-weight:800; white-space:nowrap;">
       570-362-6150
     </td>
   </tr>
