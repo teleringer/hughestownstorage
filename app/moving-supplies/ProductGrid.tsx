@@ -81,23 +81,25 @@ function QtyStepper({
         onClick={() => onChange(clampQty(v - 1))}
         disabled={v <= 1}
         className="
-          px-4 py-3 sm:px-3 sm:py-2
+          flex items-center justify-center
+          min-w-[48px] px-4 py-3 sm:min-w-[44px] sm:px-3 sm:py-2
           text-gray-900 font-semibold
           hover:bg-gray-50 active:bg-gray-100
           disabled:opacity-40 disabled:cursor-not-allowed
-          select-none
-          active:scale-[0.98]
+          select-none active:scale-[0.98]
           transition
         "
         aria-label="Decrease quantity"
       >
-        −
+        {/* Minus icon */}
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
       </button>
 
-      {/* Read-only display avoids mobile caret/input quirks */}
       <div
         className="
-          min-w-[52px] sm:min-w-[44px]
+          min-w-[56px] sm:min-w-[44px]
           flex items-center justify-center
           px-3
           text-base sm:text-sm
@@ -117,17 +119,21 @@ function QtyStepper({
         onClick={() => onChange(clampQty(v + 1))}
         disabled={v >= 999}
         className="
-          px-4 py-3 sm:px-3 sm:py-2
+          flex items-center justify-center
+          min-w-[48px] px-4 py-3 sm:min-w-[44px] sm:px-3 sm:py-2
           text-gray-900 font-semibold
           hover:bg-gray-50 active:bg-gray-100
           disabled:opacity-40 disabled:cursor-not-allowed
-          select-none
-          active:scale-[0.98]
+          select-none active:scale-[0.98]
           transition
         "
         aria-label="Increase quantity"
       >
-        +
+        {/* Plus icon */}
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
       </button>
     </div>
   );
