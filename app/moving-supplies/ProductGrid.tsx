@@ -238,7 +238,7 @@ export default function ProductGrid() {
     setStatusMsg('');
   }
 
-  // NEW: phone mask handler (digits only, formatted)
+  // phone mask handler (digits only, formatted)
   function handlePhoneChange(next: string) {
     const d = digitsOnly(next).slice(0, 10);
     setPhone(formatUsPhone(d));
@@ -272,7 +272,7 @@ export default function ProductGrid() {
 
     const payload = {
       name: fullName.trim(),
-      phone: formatUsPhone(phoneDigits), // normalized formatted
+      phone: formatUsPhone(phoneDigits),
       email: email.trim(),
       subject: `🔶 HSS Moving Supplies Reservation (${cart.length} items) – ${fullName.trim()}`,
       message: [
@@ -464,156 +464,166 @@ export default function ProductGrid() {
         >
           <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
 
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Review your items, then submit to reserve for pickup.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-4 mb-4">
-              {cart.length === 0 ? (
-                <p className="text-sm text-gray-600">Your order is empty.</p>
-              ) : (
-                <div className="space-y-3">
-                  {cart.map((line) => (
-                    <div
-                      key={line.item.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
-                    >
-                      <div>
-                        <div className="font-semibold text-gray-800">{line.item.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {line.item.size ? `${line.item.size} • ` : ''}
-                          <span className="font-semibold text-orange-600">{line.item.price}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-600">Qty</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={999}
-                          value={line.qty}
-                          onChange={(e) =>
-                            updateQty(line.item.id, parseInt(e.target.value || '1', 10))
-                          }
-                          className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(line.item.id)}
-                          className="text-sm font-semibold text-gray-700 border border-gray-300 rounded-full px-3 py-2 hover:bg-gray-50"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={submitReservationOrder} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* ✅ MOBILE FIX:
+              - max-h-[90vh] prevents it from exceeding screen
+              - flex-col + overflow-hidden so only inner area scrolls
+          */}
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header stays visible */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Your name"
-                    autoComplete="name"
-                  />
+                  <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Review your items, then submit to reserve for pickup.
+                  </p>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
-                  <input
-                    value={phone}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
-                    inputMode="numeric"
-                    autoComplete="tel"
-                    maxLength={14} // (123) 456-7890
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="(570) 456-8765"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Notes (optional)
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Pickup date/time preference, special requests, etc."
-                />
-              </div>
-
-              {status !== 'idle' && (
-                <div
-                  className={`text-sm rounded-lg px-3 py-2 ${
-                    status === 'success'
-                      ? 'bg-green-50 text-green-800'
-                      : 'bg-red-50 text-red-800'
-                  }`}
-                >
-                  {statusMsg}
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
-                  disabled={submitting}
+                  className="text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
+                  aria-label="Close"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
-                  disabled={submitting || cart.length === 0}
-                >
-                  {submitting ? 'Sending...' : 'Submit Reservation Order'}
+                  ✕
                 </button>
               </div>
+            </div>
 
-              <p className="text-xs text-gray-500 pt-1">
-                Submitting sends your reservation order to Hughestown Self-Storage for confirmation.
-              </p>
-            </form>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-6">
+              <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                {cart.length === 0 ? (
+                  <p className="text-sm text-gray-600">Your order is empty.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {cart.map((line) => (
+                      <div
+                        key={line.item.id}
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
+                      >
+                        <div>
+                          <div className="font-semibold text-gray-800">{line.item.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {line.item.size ? `${line.item.size} • ` : ''}
+                            <span className="font-semibold text-orange-600">{line.item.price}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <label className="text-sm text-gray-600">Qty</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={999}
+                            value={line.qty}
+                            onChange={(e) =>
+                              updateQty(line.item.id, parseInt(e.target.value || '1', 10))
+                            }
+                            className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(line.item.id)}
+                            className="text-sm font-semibold text-gray-700 border border-gray-300 rounded-full px-3 py-2 hover:bg-gray-50"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={submitReservationOrder} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Your name"
+                      autoComplete="name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                    <input
+                      value={phone}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      maxLength={14} // (123) 456-7890
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="(570) 456-8765"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Pickup date/time preference, special requests, etc."
+                  />
+                </div>
+
+                {status !== 'idle' && (
+                  <div
+                    className={`text-sm rounded-lg px-3 py-2 ${
+                      status === 'success'
+                        ? 'bg-green-50 text-green-800'
+                        : 'bg-red-50 text-red-800'
+                    }`}
+                  >
+                    {statusMsg}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
+                    disabled={submitting || cart.length === 0}
+                  >
+                    {submitting ? 'Sending...' : 'Submit Reservation Order'}
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-500 pt-1">
+                  Submitting sends your reservation order to Hughestown Self-Storage for confirmation.
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       )}
