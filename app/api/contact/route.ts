@@ -141,8 +141,9 @@ function buildReservationEmailHTML(opts: {
       <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:12px;">
         ${escapeHtml(opts.intro)}
       </div>
-<div style="text-align:right; font-size:12px; color:#888; margin-bottom:12px;">
-  <b>Subject:</b> ${escapeHtml(opts.subjectLine)}
+<div style="font-size:12px; color:#666; margin:10px 0 14px 0; line-height:1.4;">
+  <span style="font-weight:700;">Subject:</span>
+  ${escapeHtml(opts.subjectLine.replace("🔶 ", ""))}
 </div>
       <!-- Customer details -->
       <div style="margin-top:12px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
@@ -235,6 +236,15 @@ function buildReservationEmailHTML(opts: {
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
+<div style="margin-top:18px; font-size:8px; color:#888; line-height:1.5;">
+  <b>Confidentiality Notice:</b><br/>
+  This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage. 
+  If you are not the intended recipient, please notify the sender immediately and permanently delete this message and any attachments from your system. 
+  Unauthorized review, use, disclosure, or distribution is strictly prohibited.
+  <br/><br/>
+  Hughestown Self-Storage makes no representations or warranties regarding the completeness or accuracy of the information contained in this communication. 
+  For questions regarding this message or our services, please contact us at (570) 362-6150 or office@hughestownstorage.com.
+</div>
     </div>
   </div>
 </div>
