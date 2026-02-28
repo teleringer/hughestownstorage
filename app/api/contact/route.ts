@@ -15,7 +15,6 @@ function money(n: number) {
 }
 
 function parsePriceToNumber(price: string) {
-  // "$12.99" -> 12.99
   const cleaned = (price || "").replace(/[^0-9.]/g, "");
   const num = Number(cleaned);
   return Number.isFinite(num) ? num : 0;
@@ -30,32 +29,26 @@ function escapeHtml(s: string) {
 }
 
 /**
- * Attempts to parse your reservation message format into line items + notes.
- * Expected line format (from your ProductGrid):
+ * Parses reservation message lines like:
  * - 2 × Small Moving Box | 16" x 12" x 12" @ $2.99
+ * Notes: ...
  */
 function parseReservationMessage(message: string) {
   const lines = (message || "").split("\n").map((l) => l.trim());
   const items: ParsedItem[] = [];
-
   let notes: string | undefined;
 
   for (const line of lines) {
-    // Notes: blah
     if (/^Notes:\s*/i.test(line)) {
       notes = line.replace(/^Notes:\s*/i, "").trim();
       continue;
     }
 
-    // Item lines: "- 2 × Name | size @ $2.99"
     const m = line.match(/^-?\s*(\d+)\s*×\s*(.+?)\s*@\s*([$\d.,]+)/);
     if (m) {
       const qty = parseInt(m[1], 10) || 1;
-
-      // m[2] is "Name | size" OR just "Name"
       const nameAndMaybeSize = m[2].trim();
       const [namePart, sizePart] = nameAndMaybeSize.split("|").map((x) => x.trim());
-
       const priceEach = parsePriceToNumber(m[3]);
 
       items.push({
@@ -114,14 +107,16 @@ function buildReservationEmailHTML(opts: {
           })
           .join("");
 
-  const notesHtml = opts.notes
-    ? `<div style="margin-top:14px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
-         <div style="font-weight:700; margin-bottom:6px; color:#111;">Notes</div>
-         <div style="color:#111; white-space:pre-wrap;">${escapeHtml(opts.notes)}</div>
-       </div>`
-    : "";
+  const notesBlock =
+    opts.notes && opts.notes.trim()
+      ? `
+<div style="margin-top:14px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
+  <div style="font-weight:800; margin-bottom:6px; color:#111;">Notes</div>
+  <div style="color:#111; white-space:pre-wrap;">${escapeHtml(opts.notes)}</div>
+</div>`
+      : "";
 
-  // IMPORTANT: white/light header so logo is visible
+  // ✅ ORDER: Header → Customer Details → Notes → Items+Totals → Footer
   return `
 <div style="background:#f6f7f9; padding:24px 12px; font-family: Arial, Helvetica, sans-serif;">
   <div style="max-width:680px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e9e9e9;">
@@ -130,19 +125,32 @@ function buildReservationEmailHTML(opts: {
       <div style="display:flex; align-items:center; gap:12px;">
         <img src="${escapeHtml(opts.logoUrl)}" alt="Hughestown Self-Storage" style="display:block; height:36px; width:auto;" />
       </div>
-      <div style="font-size:12px; color:#444; font-weight:700;">Hughestown Self-Storage</div>
+      <div style="font-size:12px; color:#444; font-weight:800;">Hughestown Self-Storage</div>
     </div>
 
     <!-- Body -->
     <div style="padding:18px;">
       <h1 style="margin:0 0 10px 0; font-size:20px; color:#111;">${escapeHtml(opts.title)}</h1>
-      <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:14px;">
+      <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:12px;">
         ${escapeHtml(opts.intro)}
       </div>
 
-      <!-- Items table -->
-      <div style="border:1px solid #eee; border-radius:12px; overflow:hidden;">
-        <div style="background:#f2f3f5; padding:10px 12px; font-size:12px; font-weight:800; color:#111; display:flex; justify-content:space-between;">
+      <!-- Customer details (moved up) -->
+      <div style="margin-top:12px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
+        <div style="font-weight:800; margin-bottom:6px; color:#111;">Customer Details</div>
+        <div style="font-size:13px; color:#111; line-height:1.55;">
+          <div><b>Name:</b> ${escapeHtml(opts.name)}</div>
+          <div><b>Phone:</b> ${escapeHtml(opts.phone)}</div>
+          <div><b>Email:</b> <a href="mailto:${escapeHtml(opts.email)}" style="color:#0b57d0;">${escapeHtml(opts.email)}</a></div>
+        </div>
+      </div>
+
+      <!-- Notes (moved up) -->
+      ${notesBlock}
+
+      <!-- Items table (moved down) -->
+      <div style="margin-top:14px; border:1px solid #eee; border-radius:12px; overflow:hidden;">
+        <div style="background:#f2f3f5; padding:10px 12px; font-size:12px; font-weight:900; color:#111; display:flex; justify-content:space-between;">
           <div>ITEM</div>
           <div style="display:flex; gap:24px;">
             <div style="min-width:40px; text-align:center;">QTY</div>
@@ -161,11 +169,11 @@ function buildReservationEmailHTML(opts: {
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:14px;">
           <tr>
             <td style="padding:6px 0; color:#444;">Subtotal</td>
-            <td align="right" style="padding:6px 0; color:#111; font-weight:700;">${money(subtotal)}</td>
+            <td align="right" style="padding:6px 0; color:#111; font-weight:800;">${money(subtotal)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0; color:#444;">PA Sales Tax (6%)</td>
-            <td align="right" style="padding:6px 0; color:#111; font-weight:700;">${money(tax)}</td>
+            <td align="right" style="padding:6px 0; color:#111; font-weight:800;">${money(tax)}</td>
           </tr>
           <tr>
             <td style="padding:10px 0 0 0; color:#111; font-weight:900; font-size:16px;">Grand Total</td>
@@ -177,26 +185,14 @@ function buildReservationEmailHTML(opts: {
         </div>
       </div>
 
-      ${notesHtml}
-
-      <!-- Customer details -->
-      <div style="margin-top:14px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
-        <div style="font-weight:700; margin-bottom:6px; color:#111;">Customer Details</div>
-        <div style="font-size:13px; color:#111; line-height:1.5;">
-          <div><b>Name:</b> ${escapeHtml(opts.name)}</div>
-          <div><b>Phone:</b> ${escapeHtml(opts.phone)}</div>
-          <div><b>Email:</b> <a href="mailto:${escapeHtml(opts.email)}" style="color:#0b57d0;">${escapeHtml(opts.email)}</a></div>
-        </div>
-      </div>
-
       <div style="margin-top:14px; font-size:12px; color:#555;">
         If anything needs to be changed, just reply to this email.
       </div>
 
+      <!-- Footer -->
       <hr style="border:none; border-top:1px solid #eee; margin:16px 0;" />
-
       <div style="font-size:12px; color:#111;">
-        <div style="font-weight:800;">Hughestown Self-Storage</div>
+        <div style="font-weight:900;">Hughestown Self-Storage</div>
         <div>(570) 362-6150</div>
         <div><a href="mailto:office@hughestownstorage.com" style="color:#0b57d0;">office@hughestownstorage.com</a></div>
         <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(opts.siteUrl.replace(/^https?:\/\//, ""))}</a></div>
@@ -237,12 +233,10 @@ export async function POST(req: Request) {
 
     const resend = new Resend(RESEND_API_KEY);
 
-    // Detect reservation vs general contact
     const isReservation =
       inboundSubject.startsWith("🔶 HSS Moving Supplies Reservation") ||
       /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
 
-    // Always have a subject fallback
     const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
     const subject = inboundSubject || fallbackSubject;
 
@@ -281,9 +275,8 @@ export async function POST(req: Request) {
         taxRate: 0.06,
       });
 
-      // 1) Send to office
       await resend.emails.send({
-        from: CONTACT_FROM, // MUST be from a verified domain sender
+        from: CONTACT_FROM,
         to: CONTACT_TO.split(",").map((s) => s.trim()),
         replyTo: email || undefined,
         subject,
@@ -291,7 +284,6 @@ export async function POST(req: Request) {
         text: message || "(no message)",
       });
 
-      // 2) Send confirmation copy to customer
       if (email) {
         await resend.emails.send({
           from: CONTACT_FROM,
@@ -299,16 +291,14 @@ export async function POST(req: Request) {
           replyTo: "office@hughestownstorage.com",
           subject: `Copy of your request: ${subject}`,
           html: customerHtml,
-          text:
-            `Hi ${name || ""},\n\nHere is a copy of what you submitted to Hughestown Self-Storage:\n\n` +
-            message,
+          text: `Hi ${name || ""},\n\nHere is a copy of what you submitted to Hughestown Self-Storage:\n\n${message}`,
         });
       }
 
       return Response.json({ ok: true });
     }
 
-    // Normal contact flow (non-reservation)
+    // Normal contact flow
     await resend.emails.send({
       from: CONTACT_FROM,
       to: CONTACT_TO.split(",").map((s) => s.trim()),
@@ -323,7 +313,6 @@ Message:
 ${message}`,
     });
 
-    // Generic contact auto-reply
     if (email) {
       await resend.emails.send({
         from: CONTACT_FROM,
