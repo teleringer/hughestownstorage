@@ -141,10 +141,7 @@ function buildReservationEmailHTML(opts: {
       <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:12px;">
         ${escapeHtml(opts.intro)}
       </div>
-<div style="font-size:11px; color:#666; margin:10px 0 14px 0; line-height:1.4;">
-  <span style="font-weight:700;">Subject:</span>
-  ${escapeHtml(opts.subjectLine.replace("🔶 ", ""))}
-</div>
+
       <!-- Customer details -->
       <div style="margin-top:12px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
         <div style="font-weight:800; margin-bottom:6px; color:#111;">Customer Details</div>
@@ -203,22 +200,38 @@ function buildReservationEmailHTML(opts: {
       <hr style="border:none; border-top:1px solid #eee; margin:16px 0;" />
 
       <!-- Footer buttons -->
-<div style="text-align:center; margin:12px 0 16px 0; font-size:13px;">
-  <a href="https://hughestownstorage.com"
-     style="color:#111; text-decoration:none; font-weight:800;">
-    Home
-  </a>
-  &nbsp;|&nbsp;
-  <a href="https://hughestownstorage.ccstorage.com/find_units"
-     style="color:#EC1516; text-decoration:none; font-weight:800;">
-    Rent Now
-  </a>
-  &nbsp;|&nbsp;
-  <a href="https://hughestownstorage.ccstorage.com/session/new"
-     style="color:#444; text-decoration:none; font-weight:800;">
-    Sign In
-  </a>
-</div>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 16px 0;">
+  <tr>
+    <td align="center">
+
+      <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+        <tr>
+          <td style="padding:0 6px;">
+            <a href="https://hughestownstorage.com"
+               style="display:inline-block; padding:10px 16px; background:#111; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+              Home
+            </a>
+          </td>
+
+          <td style="padding:0 6px;">
+            <a href="https://hughestownstorage.ccstorage.com/find_units"
+               style="display:inline-block; padding:10px 16px; background:#EC1516; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+              Rent Now
+            </a>
+          </td>
+
+          <td style="padding:0 6px;">
+            <a href="https://hughestownstorage.ccstorage.com/session/new"
+               style="display:inline-block; padding:10px 16px; background:#444; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+              Sign In
+            </a>
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
 
       <div style="font-size:12px; color:#111;">
         <div style="font-weight:900;">Hughestown Self-Storage</div>
@@ -232,20 +245,14 @@ function buildReservationEmailHTML(opts: {
         <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(opts.siteUrl.replace(/^https?:\/\//, ""))}</a></div>
       </div>
 
+      <div style="font-size:11px; color:#888; margin-top:12px;">
+        Subject: ${escapeHtml(opts.subjectLine)}
+      </div>
+
       <!-- copyright line -->
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
-<hr style="border:none; border-top:1px solid #eee; margin:18px 0;" />
-<div style="margin-top:18px; font-size:10px; color:#888; line-height:1.5;">
-  <b>Confidentiality Notice:</b><br/>
-  This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage. 
-  If you are not the intended recipient, please notify the sender immediately and permanently delete this message and any attachments from your system. 
-  Unauthorized review, use, disclosure, or distribution is strictly prohibited.
-  <br/><br/>
-  Hughestown Self-Storage makes no representations or warranties regarding the completeness or accuracy of the information contained in this communication. 
-  For questions regarding this message or our services, please contact us at (570) 362-6150 or office@hughestownstorage.com.
-</div>
     </div>
   </div>
 </div>
@@ -279,8 +286,8 @@ export async function POST(req: Request) {
     const resend = new Resend(RESEND_API_KEY);
 
     const isReservation =
-  /^(\p{Extended_Pictographic}\s*)?HSS Moving Supplies (Order|Reservation)/u.test(inboundSubject) ||
-  /MOVING SUPPLIES (ORDER|RESERVATION) ORDER/i.test(message);
+      inboundSubject.startsWith("🔶 HSS Moving Supplies Reservation") ||
+      /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
 
     const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
     const subject = inboundSubject || fallbackSubject;
@@ -292,8 +299,8 @@ export async function POST(req: Request) {
       const { items, notes } = parseReservationMessage(message);
 
       const officeHtml = buildReservationEmailHTML({
-        title: "New moving supplies order",
-        intro: "A customer submitted a moving supplies order. Details are below.",
+        title: "New moving supplies reservation",
+        intro: "A customer submitted a moving supplies reservation order. Details are below.",
         subjectLine: subject,
         name: name || "Customer",
         phone: phone || "—",
@@ -306,7 +313,7 @@ export async function POST(req: Request) {
       });
 
       const customerHtml = buildReservationEmailHTML({
-        title: "We received your moving supplies order",
+        title: "We received your reservation order",
         intro:
           "Thanks for your request. Below is a copy of the reservation order you submitted. We'll contact you shortly to confirm availability and pickup details.",
         subjectLine: subject,
