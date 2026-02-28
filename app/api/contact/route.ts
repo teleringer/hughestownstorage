@@ -116,6 +116,8 @@ function buildReservationEmailHTML(opts: {
 </div>`
       : "";
 
+  const currentYear = new Date().getFullYear();
+
   // ✅ ORDER: Header → Customer Details → Notes → Items+Totals → Footer
   return `
 <div style="background:#f6f7f9; padding:24px 12px; font-family: Arial, Helvetica, sans-serif;">
@@ -125,7 +127,8 @@ function buildReservationEmailHTML(opts: {
       <div style="display:flex; align-items:center; gap:12px;">
         <img src="${escapeHtml(opts.logoUrl)}" alt="Hughestown Self-Storage" style="display:block; height:36px; width:auto;" />
       </div>
-      <div style="font-size:12px; color:#444; font-weight:800;">Hughestown Self-Storage</div>
+      <!-- CHANGED: show phone number instead of company name -->
+      <div style="font-size:12px; color:#444; font-weight:800;">570-362-6150</div>
     </div>
 
     <!-- Body -->
@@ -191,6 +194,23 @@ function buildReservationEmailHTML(opts: {
 
       <!-- Footer -->
       <hr style="border:none; border-top:1px solid #eee; margin:16px 0;" />
+
+      <!-- ADDED: footer buttons -->
+      <div style="text-align:center; margin:6px 0 14px 0;">
+        <a href="https://hughestownstorage.com"
+           style="display:inline-block; margin:5px; padding:10px 16px; background:#111; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+          Home
+        </a>
+        <a href="https://hughestownstorage.ccstorage.com/find_units"
+           style="display:inline-block; margin:5px; padding:10px 16px; background:#c2410c; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+          Rent Now
+        </a>
+        <a href="https://hughestownstorage.ccstorage.com/session/new"
+           style="display:inline-block; margin:5px; padding:10px 16px; background:#444; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+          Sign In
+        </a>
+      </div>
+
       <div style="font-size:12px; color:#111;">
         <div style="font-weight:900;">Hughestown Self-Storage</div>
         <div>(570) 362-6150</div>
@@ -200,6 +220,11 @@ function buildReservationEmailHTML(opts: {
 
       <div style="font-size:11px; color:#888; margin-top:12px;">
         Subject: ${escapeHtml(opts.subjectLine)}
+      </div>
+
+      <!-- ADDED: copyright line, centered, small -->
+      <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
+        Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
     </div>
   </div>
