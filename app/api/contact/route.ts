@@ -141,7 +141,9 @@ function buildReservationEmailHTML(opts: {
       <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:12px;">
         ${escapeHtml(opts.intro)}
       </div>
-
+<div style="text-align:right; font-size:12px; color:#888; margin-bottom:12px;">
+  <b>Subject:</b> ${escapeHtml(opts.subjectLine)}
+</div>
       <!-- Customer details -->
       <div style="margin-top:12px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
         <div style="font-weight:800; margin-bottom:6px; color:#111;">Customer Details</div>
@@ -200,38 +202,22 @@ function buildReservationEmailHTML(opts: {
       <hr style="border:none; border-top:1px solid #eee; margin:16px 0;" />
 
       <!-- Footer buttons -->
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 16px 0;">
-  <tr>
-    <td align="center">
-
-      <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
-        <tr>
-          <td style="padding:0 6px;">
-            <a href="https://hughestownstorage.com"
-               style="display:inline-block; padding:10px 16px; background:#111; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
-              Home
-            </a>
-          </td>
-
-          <td style="padding:0 6px;">
-            <a href="https://hughestownstorage.ccstorage.com/find_units"
-               style="display:inline-block; padding:10px 16px; background:#EC1516; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
-              Rent Now
-            </a>
-          </td>
-
-          <td style="padding:0 6px;">
-            <a href="https://hughestownstorage.ccstorage.com/session/new"
-               style="display:inline-block; padding:10px 16px; background:#444; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
-              Sign In
-            </a>
-          </td>
-        </tr>
-      </table>
-
-    </td>
-  </tr>
-</table>
+<div style="text-align:center; margin:12px 0 16px 0; font-size:13px;">
+  <a href="https://hughestownstorage.com"
+     style="color:#111; text-decoration:none; font-weight:800;">
+    Home
+  </a>
+  &nbsp;|&nbsp;
+  <a href="https://hughestownstorage.ccstorage.com/find_units"
+     style="color:#EC1516; text-decoration:none; font-weight:800;">
+    Rent Now
+  </a>
+  &nbsp;|&nbsp;
+  <a href="https://hughestownstorage.ccstorage.com/session/new"
+     style="color:#444; text-decoration:none; font-weight:800;">
+    Sign In
+  </a>
+</div>
 
       <div style="font-size:12px; color:#111;">
         <div style="font-weight:900;">Hughestown Self-Storage</div>
@@ -243,10 +229,6 @@ function buildReservationEmailHTML(opts: {
         <div>(570) 362-6150</div>
         <div><a href="mailto:office@hughestownstorage.com" style="color:#0b57d0;">office@hughestownstorage.com</a></div>
         <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(opts.siteUrl.replace(/^https?:\/\//, ""))}</a></div>
-      </div>
-
-      <div style="font-size:11px; color:#888; margin-top:12px;">
-        Subject: ${escapeHtml(opts.subjectLine)}
       </div>
 
       <!-- copyright line -->
