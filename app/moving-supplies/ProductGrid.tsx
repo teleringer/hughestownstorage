@@ -6,7 +6,7 @@ type Item = {
   id: string;
   name: string;
   size?: string;
-  price: string; // e.g. "$2.99"
+  price: string; // like "$2.99"
   description?: string;
   image?: string;
 };
@@ -14,21 +14,6 @@ type Item = {
 type CartLine = {
   item: Item;
   qty: number;
-};
-
-type OrderItem = {
-  name: string;
-  size?: string;
-  price: string; // "$2.99"
-  qty: number;
-};
-
-type ReservationOrder = {
-  type: 'moving-supplies-reservation';
-  items: OrderItem[];
-  subtotalCents: number;
-  subtotalFormatted: string;
-  itemCount: number; // total qty across items
 };
 
 function slugify(s: string) {
@@ -57,18 +42,18 @@ function formatUsPhone(digits: string) {
   return `(${a}) ${b}-${c}`;
 }
 
-// Money helpers
+// Money helpers (cents)
 function priceToCents(price: string) {
-  // "$2.99" -> 299
+  // "$12.99" -> 1299
   const cleaned = (price || '').replace(/[^0-9.]/g, '');
-  const num = Number(cleaned);
-  if (!Number.isFinite(num)) return 0;
-  return Math.round(num * 100);
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n * 100);
 }
 
 function centsToUsd(cents: number) {
-  const dollars = (cents / 100).toFixed(2);
-  return `$${dollars}`;
+  const safe = Number.isFinite(cents) ? cents : 0;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(safe / 100);
 }
 
 export default function ProductGrid() {
@@ -209,7 +194,7 @@ export default function ProductGrid() {
 
   // Customer fields
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState(''); // formatted: (570) 456-8765
+  const [phone, setPhone] = useState(''); // formatted value: (570) 456-8765
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -218,21 +203,18 @@ export default function ProductGrid() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string>('');
 
+  // totals
+  const TAX_RATE = 0.06;
+  const subtotalCents = cart.reduce((sum, line) => sum + priceToCents(line.item.price) * line.qty, 0);
+  const taxCents = Math.round(subtotalCents * TAX_RATE);
+  const grandTotalCents = subtotalCents + taxCents;
+
   // auto-hide toast
   useEffect(() => {
     if (!justAdded) return;
     const t = setTimeout(() => setJustAdded(null), 1800);
     return () => clearTimeout(t);
   }, [justAdded]);
-
-  // Subtotal
-  const subtotalCents = useMemo(() => {
-    return cart.reduce((sum, line) => {
-      return sum + priceToCents(line.item.price) * line.qty;
-    }, 0);
-  }, [cart]);
-
-  const subtotalFormatted = useMemo(() => centsToUsd(subtotalCents), [subtotalCents]);
 
   function addToCart(item: Item) {
     setCart((prev) => {
@@ -246,8 +228,6 @@ export default function ProductGrid() {
     });
 
     setJustAdded(item.name);
-
-    // Key UX: open the modal so they SEE the cart right away
     setIsOpen(true);
     setStatus('idle');
     setStatusMsg('');
@@ -276,7 +256,7 @@ export default function ProductGrid() {
     setStatusMsg('');
   }
 
-  // Phone mask handler
+  // phone mask handler
   function handlePhoneChange(next: string) {
     const d = digitsOnly(next).slice(0, 10);
     setPhone(formatUsPhone(d));
@@ -303,22 +283,6 @@ export default function ProductGrid() {
     setStatus('idle');
     setStatusMsg('');
 
-    const orderItems: OrderItem[] = cart.map((l) => ({
-      name: l.item.name,
-      size: l.item.size,
-      price: l.item.price,
-      qty: l.qty
-    }));
-
-    const order: ReservationOrder = {
-      type: 'moving-supplies-reservation',
-      items: orderItems,
-      subtotalCents,
-      subtotalFormatted,
-      itemCount: cartCount
-    };
-
-    // Text fallback message (still useful for quick reading / logs)
     const lines = cart.map((l) => {
       const sizePart = l.item.size ? ` | ${l.item.size}` : '';
       return `- ${l.qty} × ${l.item.name}${sizePart} @ ${l.item.price}`;
@@ -329,13 +293,22 @@ export default function ProductGrid() {
       phone: formatUsPhone(phoneDigits),
       email: email.trim(),
       subject: `🔶 HSS Moving Supplies Reservation (${cartCount} items) – ${fullName.trim()}`,
+      // NEW: totals so the email can show Subtotal/Tax/Grand Total
+      totals: {
+        subtotalCents,
+        taxRate: TAX_RATE,
+        taxCents,
+        grandTotalCents
+      },
       message: [
         `MOVING SUPPLIES RESERVATION ORDER`,
         ``,
         `Items:`,
         ...lines,
         ``,
-        `Subtotal: ${subtotalFormatted}`,
+        `Subtotal: ${centsToUsd(subtotalCents)}`,
+        `PA Sales Tax (6%): ${centsToUsd(taxCents)}`,
+        `Grand Total: ${centsToUsd(grandTotalCents)}`,
         ``,
         notes.trim() ? `Notes: ${notes.trim()}` : null,
         `---`,
@@ -344,9 +317,7 @@ export default function ProductGrid() {
         `Email: ${email.trim()}`
       ]
         .filter(Boolean)
-        .join('\n'),
-      order, // ✅ structured data for professional HTML emails
-      notes: notes.trim() || undefined
+        .join('\n')
     };
 
     try {
@@ -412,11 +383,7 @@ export default function ProductGrid() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {products.map((product, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
+              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-lg mb-4" />
               <h3 className="text-lg font-semibold text-gray-800 mb-2">{product.name}</h3>
               <p className="text-sm text-gray-600 mb-2">{product.size}</p>
               <p className="text-sm text-gray-600 mb-4">{product.description}</p>
@@ -457,9 +424,7 @@ export default function ProductGrid() {
             </div>
 
             <div className="bg-white rounded-lg p-6 text-center border-2 border-orange-600">
-              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">
-                Most Popular
-              </div>
+              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">Most Popular</div>
               <h4 className="text-lg font-semibold mb-4">2-3 Bedroom Kit</h4>
               <div className="text-3xl font-bold text-orange-600 mb-4">$89.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
@@ -511,152 +476,165 @@ export default function ProductGrid() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
 
-          {/* ✅ Mobile-friendly scrolling modal */}
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[85vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
-                  <p className="text-sm text-gray-600 mt-1">Review your items, then submit to reserve for pickup.</p>
+          {/* Make modal scrollable on mobile */}
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
+                <p className="text-sm text-gray-600 mt-1">Review your items, then submit to reserve for pickup.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="border border-gray-200 rounded-lg p-4 mb-4">
+              {cart.length === 0 ? (
+                <p className="text-sm text-gray-600">Your order is empty.</p>
+              ) : (
+                <div className="space-y-3">
+                  {cart.map((line) => (
+                    <div key={line.item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                      <div>
+                        <div className="font-semibold text-gray-800">{line.item.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {line.item.size ? `${line.item.size} • ` : ''}
+                          <span className="font-semibold text-orange-600">{line.item.price}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm text-gray-600">Qty</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={999}
+                          value={line.qty}
+                          onChange={(e) => updateQty(line.item.id, parseInt(e.target.value || '1', 10))}
+                          className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(line.item.id)}
+                          className="text-sm font-semibold text-gray-700 border border-gray-300 rounded-full px-3 py-2 hover:bg-gray-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              )}
+            </div>
+
+            {/* Totals */}
+            {cart.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>Subtotal</span>
+                  <span className="font-semibold">{centsToUsd(subtotalCents)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-700 mt-2">
+                  <span>PA Sales Tax (6%)</span>
+                  <span className="font-semibold">{centsToUsd(taxCents)}</span>
+                </div>
+                <div className="flex justify-between text-base text-gray-900 mt-3 pt-3 border-t border-gray-200">
+                  <span className="font-bold">Grand Total</span>
+                  <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Totals shown are estimates. Final total confirmed at pickup.
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={submitReservationOrder} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                  <input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Your name"
+                    autoComplete="name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    maxLength={14}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="(570) 456-8765"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Pickup date/time preference, special requests, etc."
+                />
+              </div>
+
+              {status !== 'idle' && (
+                <div
+                  className={`text-sm rounded-lg px-3 py-2 ${
+                    status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                  }`}
+                >
+                  {statusMsg}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
-                  aria-label="Close"
+                  className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
+                  disabled={submitting}
                 >
-                  ✕
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
+                  disabled={submitting || cart.length === 0}
+                >
+                  {submitting ? 'Sending...' : 'Submit Reservation Order'}
                 </button>
               </div>
 
-              <div className="border border-gray-200 rounded-lg p-4 mb-4">
-                {cart.length === 0 ? (
-                  <p className="text-sm text-gray-600">Your order is empty.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {cart.map((line) => (
-                      <div key={line.item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                        <div>
-                          <div className="font-semibold text-gray-800">{line.item.name}</div>
-                          <div className="text-sm text-gray-600">
-                            {line.item.size ? `${line.item.size} • ` : ''}
-                            <span className="font-semibold text-orange-600">{line.item.price}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <label className="text-sm text-gray-600">Qty</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={999}
-                            value={line.qty}
-                            onChange={(e) => updateQty(line.item.id, parseInt(e.target.value || '1', 10))}
-                            className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeFromCart(line.item.id)}
-                            className="text-sm font-semibold text-gray-700 border border-gray-300 rounded-full px-3 py-2 hover:bg-gray-50"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* ✅ Subtotal */}
-                    <div className="pt-3 mt-3 border-t border-gray-200 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-700">Subtotal</span>
-                      <span className="text-lg font-bold text-gray-900">{subtotalFormatted}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <form onSubmit={submitReservationOrder} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                    <input
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="Your name"
-                      autoComplete="name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
-                    <input
-                      value={phone}
-                      onChange={(e) => handlePhoneChange(e.target.value)}
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      maxLength={14} // (123) 456-7890
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="(570) 456-8765"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                  <input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Pickup date/time preference, special requests, etc."
-                  />
-                </div>
-
-                {status !== 'idle' && (
-                  <div
-                    className={`text-sm rounded-lg px-3 py-2 ${
-                      status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                    }`}
-                  >
-                    {statusMsg}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
-                    disabled={submitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
-                    disabled={submitting || cart.length === 0}
-                  >
-                    {submitting ? 'Sending...' : 'Submit Reservation Order'}
-                  </button>
-                </div>
-
-                <p className="text-xs text-gray-500 pt-1">
-                  Submitting sends your reservation order to Hughestown Self-Storage for confirmation.
-                </p>
-              </form>
-            </div>
+              <p className="text-xs text-gray-500 pt-1">
+                Submitting sends your reservation order to Hughestown Self-Storage for confirmation.
+              </p>
+            </form>
           </div>
         </div>
       )}
