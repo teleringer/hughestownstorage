@@ -72,7 +72,7 @@ function QtyStepper({
 
   return (
     <div
-      className="inline-flex items-stretch rounded-xl border border-gray-300 overflow-hidden bg-white shadow-sm"
+      className="inline-flex flex-nowrap items-stretch rounded-xl border border-gray-300 bg-white shadow-sm overflow-hidden"
       role="group"
       aria-label="Quantity selector"
     >
@@ -81,9 +81,10 @@ function QtyStepper({
         onClick={() => onChange(clampQty(v - 1))}
         disabled={v <= 1}
         className="
-          flex items-center justify-center
-          min-w-[48px] px-4 py-3 sm:min-w-[44px] sm:px-3 sm:py-2
-          text-gray-900 font-semibold
+          flex-none
+          w-12 h-11 sm:w-10 sm:h-10
+          grid place-items-center
+          text-gray-900 font-bold text-lg leading-none
           hover:bg-gray-50 active:bg-gray-100
           disabled:opacity-40 disabled:cursor-not-allowed
           select-none active:scale-[0.98]
@@ -91,22 +92,17 @@ function QtyStepper({
         "
         aria-label="Decrease quantity"
       >
-        {/* Minus icon */}
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
+        −
       </button>
 
       <div
         className="
-          min-w-[56px] sm:min-w-[44px]
-          flex items-center justify-center
-          px-3
-          text-base sm:text-sm
-          font-bold text-gray-900
-          bg-white
-          select-none
+          flex-none
+          w-14 h-11 sm:w-12 sm:h-10
+          grid place-items-center
+          text-gray-900 font-bold text-base sm:text-sm
           border-x border-gray-200
+          select-none
         "
         aria-live="polite"
         aria-label={`Quantity ${v}`}
@@ -119,9 +115,10 @@ function QtyStepper({
         onClick={() => onChange(clampQty(v + 1))}
         disabled={v >= 999}
         className="
-          flex items-center justify-center
-          min-w-[48px] px-4 py-3 sm:min-w-[44px] sm:px-3 sm:py-2
-          text-gray-900 font-semibold
+          flex-none
+          w-12 h-11 sm:w-10 sm:h-10
+          grid place-items-center
+          text-gray-900 font-bold text-lg leading-none
           hover:bg-gray-50 active:bg-gray-100
           disabled:opacity-40 disabled:cursor-not-allowed
           select-none active:scale-[0.98]
@@ -129,11 +126,7 @@ function QtyStepper({
         "
         aria-label="Increase quantity"
       >
-        {/* Plus icon */}
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 5v14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
+        ＋
       </button>
     </div>
   );
