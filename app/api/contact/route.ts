@@ -7,15 +7,16 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const name = (body?.name ?? "").toString();
-    const email = (body?.email ?? "").toString();
-    const phone = (body?.phone ?? "").toString();
-    const message = (body?.message ?? "").toString();
-    const subjectFromClient = (body?.subject ?? "").toString();
+    // Accept both contact form and reservation payloads
+    const name: string = (body?.name ?? "").toString();
+    const email: string = (body?.email ?? "").toString();
+    const phone: string = (body?.phone ?? "").toString();
+    const message: string = (body?.message ?? "").toString();
+    const subjectFromClient: string = (body?.subject ?? "").toString();
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const CONTACT_TO = process.env.CONTACT_TO;
-    const CONTACT_FROM = process.env.CONTACT_FROM;
+    const CONTACT_TO = process.env.CONTACT_TO;     // comma-separated list
+    const CONTACT_FROM = process.env.CONTACT_FROM; // e.g. 'HSS <no-reply@hughestownstorage.com>'
 
     if (!RESEND_API_KEY) {
       return Response.json({ ok: false, error: "ENV_MISSING_RESEND_API_KEY" }, { status: 500 });
@@ -29,53 +30,49 @@ export async function POST(req: Request) {
 
     const resend = new Resend(RESEND_API_KEY);
 
-    // Use subject from client if provided (reservation flow), otherwise default (contact form)
+    // If the client passed a subject (reservation), use it; otherwise fallback to contact subject.
     const subject =
-      subjectFromClient.trim().length > 0
-        ? subjectFromClient.trim()
-        : `New message from ${name || "Website"} (${phone || "no phone"})`;
+      subjectFromClient?.trim() ||
+      `New message from ${name || "Website"} (${phone || "no phone"})`;
 
-    const officeTo = CONTACT_TO.split(",").map((s) => s.trim()).filter(Boolean);
+    const officeRecipients = CONTACT_TO.split(",").map((s) => s.trim()).filter(Boolean);
 
     // 1) Send to the office
     await resend.emails.send({
       from: CONTACT_FROM,
-      to: officeTo,
-      replyTo: email || undefined,
+      to: officeRecipients,
+      replyTo: email?.trim() || undefined,
       subject,
-      text: `Name: ${name}
-Email: ${email}
-Phone: ${phone}
+      text:
+`Name: ${name || "(not provided)"}
+Email: ${email || "(not provided)"}
+Phone: ${phone || "(not provided)"}
 
 Message:
-${message}`,
+${message || "(no message)"}`,
     });
 
-    // 2) Send confirmation to customer (best-effort)
-    const safeEmail = email.trim();
-    if (safeEmail) {
-      try {
-        await resend.emails.send({
-          from: CONTACT_FROM,
-          to: safeEmail,
-          replyTo: "office@hughestownstorage.com",
-          subject: `✅ We received your reservation order — Hughestown Self-Storage`,
-          text: `Hi ${name || ""},
+    // 2) Send confirmation copy to the customer (if email provided)
+    if (email?.trim()) {
+      await resend.emails.send({
+        from: CONTACT_FROM,
+        to: [email.trim()], // force array
+        subject: `Copy of your request: ${subject}`,
+        text:
+`Hi ${name || ""},
 
-Thanks — we received your reservation order. Here is a copy for your records:
+Here is a copy of what you submitted to Hughestown Self-Storage:
 
-${message}
+-----------------------------
+${message || "(no message)"}
+-----------------------------
 
-If you have questions or need to update your order, reply to this email or call us.
+If anything needs to be changed, just reply to this email.
 
 – Hughestown Self-Storage
 (570) 362-6150
 office@hughestownstorage.com`,
-        });
-      } catch (customerErr: any) {
-        // Don’t fail the whole request; just log it.
-        console.error("CUSTOMER CONFIRMATION EMAIL FAILED:", customerErr);
-      }
+      });
     }
 
     return Response.json({ ok: true });
