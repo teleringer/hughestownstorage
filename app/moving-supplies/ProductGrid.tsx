@@ -6,7 +6,7 @@ type Item = {
   id: string;
   name: string;
   size?: string;
-  price: string;
+  price: string; // e.g. "$2.99"
   description?: string;
   image?: string;
 };
@@ -14,6 +14,21 @@ type Item = {
 type CartLine = {
   item: Item;
   qty: number;
+};
+
+type OrderItem = {
+  name: string;
+  size?: string;
+  price: string; // "$2.99"
+  qty: number;
+};
+
+type ReservationOrder = {
+  type: 'moving-supplies-reservation';
+  items: OrderItem[];
+  subtotalCents: number;
+  subtotalFormatted: string;
+  itemCount: number; // total qty across items
 };
 
 function slugify(s: string) {
@@ -25,7 +40,7 @@ function slugify(s: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-// NEW: phone helpers (US 10-digit)
+// Phone helpers (US 10-digit)
 function digitsOnly(s: string) {
   return (s || '').replace(/\D/g, '');
 }
@@ -40,6 +55,20 @@ function formatUsPhone(digits: string) {
   if (d.length < 4) return `(${a}`;
   if (d.length < 7) return `(${a}) ${b}`;
   return `(${a}) ${b}-${c}`;
+}
+
+// Money helpers
+function priceToCents(price: string) {
+  // "$2.99" -> 299
+  const cleaned = (price || '').replace(/[^0-9.]/g, '');
+  const num = Number(cleaned);
+  if (!Number.isFinite(num)) return 0;
+  return Math.round(num * 100);
+}
+
+function centsToUsd(cents: number) {
+  const dollars = (cents / 100).toFixed(2);
+  return `$${dollars}`;
 }
 
 export default function ProductGrid() {
@@ -180,7 +209,7 @@ export default function ProductGrid() {
 
   // Customer fields
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState(''); // formatted value: (570) 456-8765
+  const [phone, setPhone] = useState(''); // formatted: (570) 456-8765
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -196,6 +225,15 @@ export default function ProductGrid() {
     return () => clearTimeout(t);
   }, [justAdded]);
 
+  // Subtotal
+  const subtotalCents = useMemo(() => {
+    return cart.reduce((sum, line) => {
+      return sum + priceToCents(line.item.price) * line.qty;
+    }, 0);
+  }, [cart]);
+
+  const subtotalFormatted = useMemo(() => centsToUsd(subtotalCents), [subtotalCents]);
+
   function addToCart(item: Item) {
     setCart((prev) => {
       const idx = prev.findIndex((l) => l.item.id === item.id);
@@ -208,6 +246,8 @@ export default function ProductGrid() {
     });
 
     setJustAdded(item.name);
+
+    // Key UX: open the modal so they SEE the cart right away
     setIsOpen(true);
     setStatus('idle');
     setStatusMsg('');
@@ -219,9 +259,7 @@ export default function ProductGrid() {
 
   function updateQty(itemId: string, qty: number) {
     const safeQty = Number.isFinite(qty) ? Math.max(1, Math.min(999, qty)) : 1;
-    setCart((prev) =>
-      prev.map((l) => (l.item.id === itemId ? { ...l, qty: safeQty } : l))
-    );
+    setCart((prev) => prev.map((l) => (l.item.id === itemId ? { ...l, qty: safeQty } : l)));
   }
 
   function openOrderModal() {
@@ -238,7 +276,7 @@ export default function ProductGrid() {
     setStatusMsg('');
   }
 
-  // phone mask handler (digits only, formatted)
+  // Phone mask handler
   function handlePhoneChange(next: string) {
     const d = digitsOnly(next).slice(0, 10);
     setPhone(formatUsPhone(d));
@@ -265,6 +303,22 @@ export default function ProductGrid() {
     setStatus('idle');
     setStatusMsg('');
 
+    const orderItems: OrderItem[] = cart.map((l) => ({
+      name: l.item.name,
+      size: l.item.size,
+      price: l.item.price,
+      qty: l.qty
+    }));
+
+    const order: ReservationOrder = {
+      type: 'moving-supplies-reservation',
+      items: orderItems,
+      subtotalCents,
+      subtotalFormatted,
+      itemCount: cartCount
+    };
+
+    // Text fallback message (still useful for quick reading / logs)
     const lines = cart.map((l) => {
       const sizePart = l.item.size ? ` | ${l.item.size}` : '';
       return `- ${l.qty} × ${l.item.name}${sizePart} @ ${l.item.price}`;
@@ -274,12 +328,14 @@ export default function ProductGrid() {
       name: fullName.trim(),
       phone: formatUsPhone(phoneDigits),
       email: email.trim(),
-      subject: `🔶 HSS Moving Supplies Reservation (${cart.length} items) – ${fullName.trim()}`,
+      subject: `🔶 HSS Moving Supplies Reservation (${cartCount} items) – ${fullName.trim()}`,
       message: [
         `MOVING SUPPLIES RESERVATION ORDER`,
         ``,
         `Items:`,
         ...lines,
+        ``,
+        `Subtotal: ${subtotalFormatted}`,
         ``,
         notes.trim() ? `Notes: ${notes.trim()}` : null,
         `---`,
@@ -288,7 +344,9 @@ export default function ProductGrid() {
         `Email: ${email.trim()}`
       ]
         .filter(Boolean)
-        .join('\n')
+        .join('\n'),
+      order, // ✅ structured data for professional HTML emails
+      notes: notes.trim() || undefined
     };
 
     try {
@@ -311,9 +369,7 @@ export default function ProductGrid() {
       }
 
       setStatus('success');
-      setStatusMsg(
-        "Thanks — we received your reservation order. We'll contact you shortly to confirm availability."
-      );
+      setStatusMsg("Thanks — we received your reservation order. We'll contact you shortly to confirm availability.");
       setSubmitting(false);
 
       setCart([]);
@@ -355,10 +411,7 @@ export default function ProductGrid() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {products.map((product, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
-            >
+            <div key={index} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
               <img
                 src={product.image}
                 alt={product.name}
@@ -382,9 +435,7 @@ export default function ProductGrid() {
         </div>
 
         <div className="bg-orange-50 rounded-lg p-8 mt-12">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-            Moving Kits Available
-          </h3>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Moving Kits Available</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg p-6 text-center">
               <h4 className="text-lg font-semibold mb-4">Studio Apartment Kit</h4>
@@ -457,26 +508,16 @@ export default function ProductGrid() {
 
       {/* Order Modal */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          role="dialog"
-          aria-modal="true"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
 
-          {/* ✅ MOBILE FIX:
-              - max-h-[90vh] prevents it from exceeding screen
-              - flex-col + overflow-hidden so only inner area scrolls
-          */}
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header stays visible */}
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-start justify-between gap-4">
+          {/* ✅ Mobile-friendly scrolling modal */}
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[85vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Review your items, then submit to reserve for pickup.
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">Review your items, then submit to reserve for pickup.</p>
                 </div>
                 <button
                   type="button"
@@ -487,20 +528,14 @@ export default function ProductGrid() {
                   ✕
                 </button>
               </div>
-            </div>
 
-            {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto overscroll-contain p-6">
               <div className="border border-gray-200 rounded-lg p-4 mb-4">
                 {cart.length === 0 ? (
                   <p className="text-sm text-gray-600">Your order is empty.</p>
                 ) : (
                   <div className="space-y-3">
                     {cart.map((line) => (
-                      <div
-                        key={line.item.id}
-                        className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
-                      >
+                      <div key={line.item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                         <div>
                           <div className="font-semibold text-gray-800">{line.item.name}</div>
                           <div className="text-sm text-gray-600">
@@ -516,9 +551,7 @@ export default function ProductGrid() {
                             min={1}
                             max={999}
                             value={line.qty}
-                            onChange={(e) =>
-                              updateQty(line.item.id, parseInt(e.target.value || '1', 10))
-                            }
+                            onChange={(e) => updateQty(line.item.id, parseInt(e.target.value || '1', 10))}
                             className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                           />
                           <button
@@ -531,6 +564,12 @@ export default function ProductGrid() {
                         </div>
                       </div>
                     ))}
+
+                    {/* ✅ Subtotal */}
+                    <div className="pt-3 mt-3 border-t border-gray-200 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-700">Subtotal</span>
+                      <span className="text-lg font-bold text-gray-900">{subtotalFormatted}</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -538,9 +577,7 @@ export default function ProductGrid() {
               <form onSubmit={submitReservationOrder} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Full Name
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
                     <input
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -577,9 +614,7 @@ export default function ProductGrid() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Notes (optional)
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
@@ -592,9 +627,7 @@ export default function ProductGrid() {
                 {status !== 'idle' && (
                   <div
                     className={`text-sm rounded-lg px-3 py-2 ${
-                      status === 'success'
-                        ? 'bg-green-50 text-green-800'
-                        : 'bg-red-50 text-red-800'
+                      status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
                     }`}
                   >
                     {statusMsg}
