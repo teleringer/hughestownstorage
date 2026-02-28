@@ -1,14 +1,25 @@
 // app/api/contact/route.ts
 import { Resend } from "resend";
 
-export const runtime = "nodejs"; // Resend SDK needs Node runtime
+export const runtime = "nodejs";
 
-type IncomingItem = {
+type ParsedItem = {
+  qty: number;
   name: string;
   size?: string;
-  qty: number;
-  price: string; // like "$2.99"
+  priceEach: number;
 };
+
+function money(n: number) {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+function parsePriceToNumber(price: string) {
+  // "$12.99" -> 12.99
+  const cleaned = (price || "").replace(/[^0-9.]/g, "");
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : 0;
+}
 
 function escapeHtml(s: string) {
   return (s || "")
@@ -18,196 +29,185 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
-function priceToNumber(price: string) {
-  const n = Number((price || "").replace(/[^0-9.]/g, ""));
-  return Number.isFinite(n) ? n : 0;
+/**
+ * Attempts to parse your reservation message format into line items + notes.
+ * Expected line format (from your ProductGrid):
+ * - 2 × Small Moving Box | 16" x 12" x 12" @ $2.99
+ */
+function parseReservationMessage(message: string) {
+  const lines = (message || "").split("\n").map((l) => l.trim());
+  const items: ParsedItem[] = [];
+
+  let notes: string | undefined;
+
+  for (const line of lines) {
+    // Notes: blah
+    if (/^Notes:\s*/i.test(line)) {
+      notes = line.replace(/^Notes:\s*/i, "").trim();
+      continue;
+    }
+
+    // Item lines: "- 2 × Name | size @ $2.99"
+    const m = line.match(/^-?\s*(\d+)\s*×\s*(.+?)\s*@\s*([$\d.,]+)/);
+    if (m) {
+      const qty = parseInt(m[1], 10) || 1;
+
+      // m[2] is "Name | size" OR just "Name"
+      const nameAndMaybeSize = m[2].trim();
+      const [namePart, sizePart] = nameAndMaybeSize.split("|").map((x) => x.trim());
+
+      const priceEach = parsePriceToNumber(m[3]);
+
+      items.push({
+        qty,
+        name: namePart,
+        size: sizePart || undefined,
+        priceEach,
+      });
+    }
+  }
+
+  return { items, notes };
 }
 
-function money(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
-}
-
-function buildReservationHtml(opts: {
-  logoUrl: string;
-  subject: string;
-  introTitle: string;
-  introText: string;
-  items: IncomingItem[];
+function buildReservationEmailHTML(opts: {
+  title: string;
+  intro: string;
+  subjectLine: string;
+  name: string;
+  phone: string;
+  email: string;
+  items: ParsedItem[];
   notes?: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
+  logoUrl: string;
+  siteUrl: string;
   taxRate: number; // 0.06
-  footerLine1: string;
-  footerLine2: string;
-  footerLine3: string;
 }) {
-  const {
-    logoUrl,
-    subject,
-    introTitle,
-    introText,
-    items,
-    notes,
-    customerName,
-    customerPhone,
-    customerEmail,
-    taxRate,
-    footerLine1,
-    footerLine2,
-    footerLine3
-  } = opts;
+  const { items, taxRate } = opts;
 
-  const subtotal = items.reduce((sum, it) => {
-    return sum + it.qty * priceToNumber(it.price);
-  }, 0);
-
+  const subtotal = items.reduce((sum, it) => sum + it.qty * it.priceEach, 0);
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
-  const rows = items
-    .map((it) => {
-      const itemName = escapeHtml(it.name);
-      const itemSize = it.size ? `<div style="font-size:12px;color:#6b7280;margin-top:2px;">${escapeHtml(it.size)}</div>` : "";
-      const qty = escapeHtml(String(it.qty));
-      const price = escapeHtml(it.price);
+  const rowsHtml =
+    items.length === 0
+      ? `<tr><td colspan="3" style="padding:14px; color:#555;">No items found.</td></tr>`
+      : items
+          .map((it) => {
+            const lineTotal = it.qty * it.priceEach;
+            const sizeLine = it.size
+              ? `<div style="font-size:12px; color:#666; margin-top:2px;">${escapeHtml(it.size)}</div>`
+              : "";
 
-      return `
-        <tr>
-          <td style="padding:12px;border-top:1px solid #e5e7eb;vertical-align:top;">
-            <div style="font-weight:700;color:#111827;">${itemName}</div>
-            ${itemSize}
-          </td>
-          <td style="padding:12px;border-top:1px solid #e5e7eb;text-align:center;vertical-align:top;color:#111827;font-weight:700;">
-            ${qty}
-          </td>
-          <td style="padding:12px;border-top:1px solid #e5e7eb;text-align:right;vertical-align:top;color:#111827;font-weight:700;">
-            ${price}
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
+            return `
+<tr>
+  <td style="padding:12px 10px; border-bottom:1px solid #eee;">
+    <div style="font-weight:600; color:#111;">${escapeHtml(it.name)}</div>
+    ${sizeLine}
+  </td>
+  <td align="center" style="padding:12px 10px; border-bottom:1px solid #eee; color:#111;">${it.qty}</td>
+  <td align="right" style="padding:12px 10px; border-bottom:1px solid #eee; color:#111;">
+    <div style="font-weight:600;">${money(it.priceEach)}</div>
+    <div style="font-size:12px; color:#666; margin-top:2px;">Line: ${money(lineTotal)}</div>
+  </td>
+</tr>`;
+          })
+          .join("");
 
-  const notesBlock = notes?.trim()
-    ? `
-      <div style="margin-top:16px;">
-        <div style="font-weight:800;color:#111827;margin-bottom:6px;">Notes</div>
-        <div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;color:#111827;background:#ffffff;">
-          ${escapeHtml(notes.trim())}
-        </div>
-      </div>
-    `
+  const notesHtml = opts.notes
+    ? `<div style="margin-top:14px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
+         <div style="font-weight:700; margin-bottom:6px; color:#111;">Notes</div>
+         <div style="color:#111; white-space:pre-wrap;">${escapeHtml(opts.notes)}</div>
+       </div>`
     : "";
 
+  // IMPORTANT: white/light header so logo is visible
   return `
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(subject)}</title>
-  </head>
-  <body style="margin:0;padding:0;background:#f3f4f6;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f3f4f6;">
-      <tr>
-        <td align="center" style="padding:24px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;max-width:680px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-            
-            <!-- Header -->
-            <tr>
-              <td style="background:linear-gradient(90deg,#111827,#1f2937);padding:18px 20px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                  <tr>
-                    <td style="vertical-align:middle;">
-                      <img 
-                        src="${escapeHtml(logoUrl)}" 
-                        alt="Hughestown Self-Storage" 
-                        style="display:block;height:46px;width:auto;max-width:100%;background:#ffffff;padding:6px 10px;border-radius:10px;"
-                      />
-                    </td>
-                    <td style="vertical-align:middle;text-align:right;font-family:Arial,Helvetica,sans-serif;color:#ffffff;font-size:14px;font-weight:700;">
-                      Hughestown Self-Storage
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
+<div style="background:#f6f7f9; padding:24px 12px; font-family: Arial, Helvetica, sans-serif;">
+  <div style="max-width:680px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e9e9e9;">
+    <!-- Header -->
+    <div style="background:#ffffff; border-bottom:1px solid #eee; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img src="${escapeHtml(opts.logoUrl)}" alt="Hughestown Self-Storage" style="display:block; height:36px; width:auto;" />
+      </div>
+      <div style="font-size:12px; color:#444; font-weight:700;">Hughestown Self-Storage</div>
+    </div>
 
-            <!-- Body -->
-            <tr>
-              <td style="padding:22px 20px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
-                <div style="font-size:22px;font-weight:900;margin:0 0 8px 0;">${escapeHtml(introTitle)}</div>
-                <div style="font-size:14px;color:#374151;line-height:1.5;margin:0 0 16px 0;">
-                  ${escapeHtml(introText)}
-                </div>
+    <!-- Body -->
+    <div style="padding:18px;">
+      <h1 style="margin:0 0 10px 0; font-size:20px; color:#111;">${escapeHtml(opts.title)}</h1>
+      <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:14px;">
+        ${escapeHtml(opts.intro)}
+      </div>
 
-                <!-- Items table -->
-                <div style="border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#ffffff;">
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                    <tr style="background:#f9fafb;">
-                      <th align="left" style="padding:12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Item</th>
-                      <th align="center" style="padding:12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Qty</th>
-                      <th align="right" style="padding:12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Price</th>
-                    </tr>
-                    ${rows}
-                  </table>
-                </div>
+      <!-- Items table -->
+      <div style="border:1px solid #eee; border-radius:12px; overflow:hidden;">
+        <div style="background:#f2f3f5; padding:10px 12px; font-size:12px; font-weight:800; color:#111; display:flex; justify-content:space-between;">
+          <div>ITEM</div>
+          <div style="display:flex; gap:24px;">
+            <div style="min-width:40px; text-align:center;">QTY</div>
+            <div style="min-width:130px; text-align:right;">PRICE</div>
+          </div>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
 
-                <!-- Totals -->
-                <div style="margin-top:14px;border:1px solid #e5e7eb;border-radius:14px;padding:12px;background:#ffffff;">
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                    <tr>
-                      <td style="padding:6px 0;color:#374151;font-size:13px;">Subtotal</td>
-                      <td style="padding:6px 0;text-align:right;color:#111827;font-weight:800;">${money(subtotal)}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding:6px 0;color:#374151;font-size:13px;">PA Sales Tax (6%)</td>
-                      <td style="padding:6px 0;text-align:right;color:#111827;font-weight:800;">${money(tax)}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding:10px 0 6px 0;color:#111827;font-size:14px;font-weight:900;border-top:1px solid #e5e7eb;">Grand Total</td>
-                      <td style="padding:10px 0 6px 0;text-align:right;color:#111827;font-size:14px;font-weight:900;border-top:1px solid #e5e7eb;">${money(total)}</td>
-                    </tr>
-                    <tr>
-                      <td colspan="2" style="padding-top:4px;color:#6b7280;font-size:11px;">
-                        Totals shown are estimates. Final total confirmed at pickup.
-                      </td>
-                    </tr>
-                  </table>
-                </div>
+      <!-- Totals -->
+      <div style="margin-top:12px; border:1px solid #eee; border-radius:12px; padding:12px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:14px;">
+          <tr>
+            <td style="padding:6px 0; color:#444;">Subtotal</td>
+            <td align="right" style="padding:6px 0; color:#111; font-weight:700;">${money(subtotal)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0; color:#444;">PA Sales Tax (6%)</td>
+            <td align="right" style="padding:6px 0; color:#111; font-weight:700;">${money(tax)}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0 0 0; color:#111; font-weight:900; font-size:16px;">Grand Total</td>
+            <td align="right" style="padding:10px 0 0 0; color:#111; font-weight:900; font-size:16px;">${money(total)}</td>
+          </tr>
+        </table>
+        <div style="margin-top:6px; font-size:11px; color:#666;">
+          Totals shown are estimates. Final total confirmed at pickup.
+        </div>
+      </div>
 
-                ${notesBlock}
+      ${notesHtml}
 
-                <!-- Customer details -->
-                <div style="margin-top:16px;">
-                  <div style="font-weight:900;color:#111827;margin-bottom:6px;">Customer Details</div>
-                  <div style="border:1px solid #e5e7eb;border-radius:14px;padding:12px;background:#ffffff;color:#111827;">
-                    <div><span style="font-weight:800;">Name:</span> ${escapeHtml(customerName)}</div>
-                    <div><span style="font-weight:800;">Phone:</span> ${escapeHtml(customerPhone)}</div>
-                    <div><span style="font-weight:800;">Email:</span> <a href="mailto:${escapeHtml(customerEmail)}" style="color:#2563eb;">${escapeHtml(customerEmail)}</a></div>
-                  </div>
-                </div>
+      <!-- Customer details -->
+      <div style="margin-top:14px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
+        <div style="font-weight:700; margin-bottom:6px; color:#111;">Customer Details</div>
+        <div style="font-size:13px; color:#111; line-height:1.5;">
+          <div><b>Name:</b> ${escapeHtml(opts.name)}</div>
+          <div><b>Phone:</b> ${escapeHtml(opts.phone)}</div>
+          <div><b>Email:</b> <a href="mailto:${escapeHtml(opts.email)}" style="color:#0b57d0;">${escapeHtml(opts.email)}</a></div>
+        </div>
+      </div>
 
-                <div style="margin-top:16px;color:#6b7280;font-size:12px;line-height:1.5;">
-                  If anything needs to be changed, just reply to this email.
-                </div>
+      <div style="margin-top:14px; font-size:12px; color:#555;">
+        If anything needs to be changed, just reply to this email.
+      </div>
 
-                <div style="margin-top:16px;border-top:1px solid #e5e7eb;padding-top:12px;color:#111827;font-size:12px;line-height:1.5;">
-                  <div style="font-weight:900;">Hughestown Self-Storage</div>
-                  <div>${escapeHtml(footerLine1)}</div>
-                  <div><a href="mailto:${escapeHtml(footerLine2)}" style="color:#2563eb;">${escapeHtml(footerLine2)}</a></div>
-                  <div style="color:#6b7280;">${escapeHtml(footerLine3)}</div>
-                </div>
-              </td>
-            </tr>
+      <hr style="border:none; border-top:1px solid #eee; margin:16px 0;" />
 
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
+      <div style="font-size:12px; color:#111;">
+        <div style="font-weight:800;">Hughestown Self-Storage</div>
+        <div>(570) 362-6150</div>
+        <div><a href="mailto:office@hughestownstorage.com" style="color:#0b57d0;">office@hughestownstorage.com</a></div>
+        <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(opts.siteUrl.replace(/^https?:\/\//, ""))}</a></div>
+      </div>
+
+      <div style="font-size:11px; color:#888; margin-top:12px;">
+        Subject: ${escapeHtml(opts.subjectLine)}
+      </div>
+    </div>
+  </div>
+</div>
   `;
 }
 
@@ -215,16 +215,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // common fields (contact + reservation)
-    const name = (body?.name ?? "").toString();
-    const email = (body?.email ?? "").toString();
-    const phone = (body?.phone ?? "").toString();
-
-    // reservation-specific (if provided)
-    const items: IncomingItem[] = Array.isArray(body?.items) ? body.items : [];
-    const notes = (body?.notes ?? body?.message ?? "").toString(); // fallback
-
-    const incomingSubject = (body?.subject ?? "").toString().trim();
+    const name = (body?.name || "").toString();
+    const email = (body?.email || "").toString();
+    const phone = (body?.phone || "").toString();
+    const message = (body?.message || "").toString();
+    const inboundSubject = (body?.subject || "").toString();
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const CONTACT_TO = process.env.CONTACT_TO;
@@ -241,96 +236,107 @@ export async function POST(req: Request) {
     }
 
     const resend = new Resend(RESEND_API_KEY);
-    const toOffice = CONTACT_TO.split(",").map((s) => s.trim()).filter(Boolean);
 
-    const isReservation = items.length > 0;
+    // Detect reservation vs general contact
+    const isReservation =
+      inboundSubject.startsWith("🔶 HSS Moving Supplies Reservation") ||
+      /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
 
-    // Shared defaults
-    const subjectOffice =
-      incomingSubject ||
-      (isReservation
-        ? `🔶 HSS Moving Supplies Reservation (${items.length} items) – ${name || "Website"}`
-        : `New message from ${name || "Website"} (${phone || "no phone"})`);
+    // Always have a subject fallback
+    const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
+    const subject = inboundSubject || fallbackSubject;
 
-    // ---------- OFFICE EMAIL ----------
+    const siteUrl = "https://hughestownstorage.com";
+    const logoUrl = `${siteUrl}/images/email/hss-logo.png`;
+
     if (isReservation) {
-      const logoUrl = "https://hughestownstorage.com/images/email/hss-logo.png";
+      const { items, notes } = parseReservationMessage(message);
 
-      const htmlToOffice = buildReservationHtml({
-        logoUrl,
-        subject: subjectOffice,
-        introTitle: "New moving supplies reservation order",
-        introText: "A customer submitted a reservation order. Review items and contact them to confirm availability and pickup details.",
+      const officeHtml = buildReservationEmailHTML({
+        title: "New moving supplies reservation",
+        intro: "A customer submitted a moving supplies reservation order. Details are below.",
+        subjectLine: subject,
+        name: name || "Customer",
+        phone: phone || "—",
+        email: email || "—",
         items,
-        notes: body?.notes ? String(body.notes) : "",
-        customerName: name || "—",
-        customerPhone: phone || "—",
-        customerEmail: email || "—",
+        notes,
+        logoUrl,
+        siteUrl,
         taxRate: 0.06,
-        footerLine1: "(570) 362-6150",
-        footerLine2: "office@hughestownstorage.com",
-        footerLine3: "133 New Street, Hughestown, PA 18640"
       });
 
+      const customerHtml = buildReservationEmailHTML({
+        title: "We received your reservation order",
+        intro:
+          "Thanks for your request. Below is a copy of the reservation order you submitted. We'll contact you shortly to confirm availability and pickup details.",
+        subjectLine: subject,
+        name: name || "Customer",
+        phone: phone || "—",
+        email: email || "—",
+        items,
+        notes,
+        logoUrl,
+        siteUrl,
+        taxRate: 0.06,
+      });
+
+      // 1) Send to office
       await resend.emails.send({
-        from: CONTACT_FROM,
-        to: toOffice,
+        from: CONTACT_FROM, // MUST be from a verified domain sender
+        to: CONTACT_TO.split(",").map((s) => s.trim()),
         replyTo: email || undefined,
-        subject: subjectOffice,
-        html: htmlToOffice
+        subject,
+        html: officeHtml,
+        text: message || "(no message)",
       });
 
-      // ---------- CUSTOMER CONFIRMATION ----------
-      // (Only if customer provided email)
+      // 2) Send confirmation copy to customer
       if (email) {
-        const htmlToCustomer = buildReservationHtml({
-          logoUrl,
-          subject: `Copy of your request: ${subjectOffice}`,
-          introTitle: "We received your reservation order",
-          introText:
-            "Thanks for your request. Below is a copy of the reservation order you submitted. We'll contact you shortly to confirm availability and pickup details.",
-          items,
-          notes: body?.notes ? String(body.notes) : "",
-          customerName: name || "—",
-          customerPhone: phone || "—",
-          customerEmail: email,
-          taxRate: 0.06,
-          footerLine1: "(570) 362-6150",
-          footerLine2: "office@hughestownstorage.com",
-          footerLine3: "133 New Street, Hughestown, PA 18640"
-        });
-
         await resend.emails.send({
           from: CONTACT_FROM,
           to: email,
-          // allow customer to reply back to the office:
-          replyTo: toOffice?.[0] || undefined,
-          subject: `Copy of your request: ${subjectOffice}`,
-          html: htmlToCustomer
+          replyTo: "office@hughestownstorage.com",
+          subject: `Copy of your request: ${subject}`,
+          html: customerHtml,
+          text:
+            `Hi ${name || ""},\n\nHere is a copy of what you submitted to Hughestown Self-Storage:\n\n` +
+            message,
         });
       }
 
       return Response.json({ ok: true });
     }
 
-    // ---------- NORMAL CONTACT FORM (fallback) ----------
-    const message = (body?.message ?? "").toString();
+    // Normal contact flow (non-reservation)
     await resend.emails.send({
       from: CONTACT_FROM,
-      to: toOffice,
+      to: CONTACT_TO.split(",").map((s) => s.trim()),
       replyTo: email || undefined,
-      subject: subjectOffice,
-      text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${message}`
+      subject,
+      text:
+`Name: ${name}
+Email: ${email}
+Phone: ${phone}
+
+Message:
+${message}`,
     });
 
-    // Auto-reply to sender
+    // Generic contact auto-reply
     if (email) {
       await resend.emails.send({
         from: CONTACT_FROM,
         to: email,
-        replyTo: toOffice?.[0] || undefined,
         subject: "Thanks for contacting Hughestown Self-Storage",
-        text: `Hi ${name || ""},\n\nThanks for reaching out! We received your message and will get back to you soon.\n\n– Hughestown Self-Storage\n(570) 362-6150\noffice@hughestownstorage.com`
+        text:
+`Hi ${name || ""},
+
+Thanks for reaching out! We received your message and will get back to you soon.
+
+– Hughestown Self-Storage
+(570) 362-6150
+office@hughestownstorage.com`,
       });
     }
 
