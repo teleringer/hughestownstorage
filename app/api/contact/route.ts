@@ -253,6 +253,16 @@ function buildReservationEmailHTML(opts: {
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
+<hr style="border:none; border-top:1px solid #eee; margin:18px 0;" />
+<div style="margin-top:18px; font-size:10px; color:#888; line-height:1.5;">
+  <b>Confidentiality Notice:</b><br/>
+  This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage. 
+  If you are not the intended recipient, please notify the sender immediately and permanently delete this message and any attachments from your system. 
+  Unauthorized review, use, disclosure, or distribution is strictly prohibited.
+  <br/><br/>
+  Hughestown Self-Storage makes no representations or warranties regarding the completeness or accuracy of the information contained in this communication. 
+  For questions regarding this message or our services, please contact us at (570) 362-6150 or office@hughestownstorage.com.
+</div>
     </div>
   </div>
 </div>
@@ -286,7 +296,7 @@ export async function POST(req: Request) {
     const resend = new Resend(RESEND_API_KEY);
 
     const isReservation =
-      inboundSubject.startsWith("🔶 HSS Moving Supplies Reservation") ||
+      inboundSubject.startsWith("📦 HSS Moving Supplies Order") ||
       /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
 
     const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
@@ -299,8 +309,8 @@ export async function POST(req: Request) {
       const { items, notes } = parseReservationMessage(message);
 
       const officeHtml = buildReservationEmailHTML({
-        title: "New moving supplies reservation",
-        intro: "A customer submitted a moving supplies reservation order. Details are below.",
+        title: "New moving supplies order",
+        intro: "A customer submitted a moving supplies order. Details are below.",
         subjectLine: subject,
         name: name || "Customer",
         phone: phone || "—",
@@ -313,9 +323,9 @@ export async function POST(req: Request) {
       });
 
       const customerHtml = buildReservationEmailHTML({
-        title: "We received your reservation order",
+        title: "We received your moving supplies order",
         intro:
-          "Thanks for your request. Below is a copy of the reservation order you submitted. We'll contact you shortly to confirm availability and pickup details.",
+          "Thanks for your request. Below is a copy of the moving supplies order you submitted. We'll contact you shortly to confirm availability and pickup details.",
         subjectLine: subject,
         name: name || "Customer",
         phone: phone || "—",
