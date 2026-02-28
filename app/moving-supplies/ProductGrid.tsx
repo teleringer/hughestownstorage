@@ -72,7 +72,7 @@ function QtyStepper({
 
   return (
     <div
-      className="inline-flex flex-nowrap items-stretch rounded-xl border border-gray-300 bg-white shadow-sm overflow-hidden"
+      className="inline-flex shrink-0 flex-nowrap items-stretch rounded-xl border border-gray-300 bg-white shadow-sm overflow-hidden"
       role="group"
       aria-label="Quantity selector"
     >
@@ -584,23 +584,42 @@ export default function ProductGrid() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-600">Qty</label>
+                     <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+  <div className="flex items-center gap-2">
+    <label className="text-sm text-gray-600">Qty</label>
+    <QtyStepper
+      value={line.qty}
+      onChange={(next) => updateQty(line.item.id, next)}
+    />
+  </div>
 
-                        {/* NEW: Mobile-friendly stepper */}
-                        <QtyStepper
-                          value={line.qty}
-                          onChange={(next) => updateQty(line.item.id, next)}
-                        />
+  <button
+  type="button"
+  onClick={() => removeFromCart(line.item.id)}
+  className="
+    inline-flex items-center justify-center
+    w-11 h-11 sm:w-auto sm:h-auto
+    border border-gray-300 rounded-full
+    text-gray-700 hover:bg-gray-50
+    active:bg-gray-100
+    transition
+    shrink-0
+  "
+  aria-label={`Remove ${line.item.name}`}
+  title="Remove"
+>
+  {/* Trash icon (SVG) */}
+  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
+      fill="currentColor"
+    />
+  </svg>
 
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(line.item.id)}
-                          className="text-sm font-semibold text-gray-700 border border-gray-300 rounded-full px-3 py-2 hover:bg-gray-50"
-                        >
-                          Remove
-                        </button>
-                      </div>
+  {/* Optional text label on desktop only */}
+  <span className="hidden sm:inline ml-2 text-sm font-semibold">Remove</span>
+</button>
+</div>
                     </div>
                   ))}
                 </div>
