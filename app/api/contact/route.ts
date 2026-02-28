@@ -5,7 +5,13 @@ export const runtime = "nodejs"; // Resend SDK needs Node runtime
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, message, subject } = await req.json();
+    const body = await req.json();
+
+    const name = (body?.name ?? "").toString();
+    const email = (body?.email ?? "").toString();
+    const phone = (body?.phone ?? "").toString();
+    const message = (body?.message ?? "").toString();
+    const subjectFromClient = (body?.subject ?? "").toString();
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const CONTACT_TO = process.env.CONTACT_TO;
@@ -23,71 +29,53 @@ export async function POST(req: Request) {
 
     const resend = new Resend(RESEND_API_KEY);
 
-    const safeName = (name || "Website").toString();
-    const safePhone = (phone || "no phone").toString();
-    const safeEmail = (email || "").toString().trim();
-    const safeMessage = (message || "").toString();
+    // Use subject from client if provided (reservation flow), otherwise default (contact form)
+    const subject =
+      subjectFromClient.trim().length > 0
+        ? subjectFromClient.trim()
+        : `New message from ${name || "Website"} (${phone || "no phone"})`;
 
-    // If the frontend passed a subject (reservation form does), use it.
-    // Otherwise fall back to the standard contact subject.
-    const officeSubject =
-      (subject && String(subject).trim()) ||
-      `New message from ${safeName} (${safePhone})`;
+    const officeTo = CONTACT_TO.split(",").map((s) => s.trim()).filter(Boolean);
 
     // 1) Send to the office
     await resend.emails.send({
-      from: CONTACT_FROM, // e.g. 'Hughestown <no-reply@hughestownstorage.com>'
-      to: CONTACT_TO.split(",").map((s) => s.trim()),
-      replyTo: safeEmail || undefined,
-      subject: officeSubject,
-      text: `Name: ${safeName}
-Email: ${safeEmail || "N/A"}
-Phone: ${safePhone}
+      from: CONTACT_FROM,
+      to: officeTo,
+      replyTo: email || undefined,
+      subject,
+      text: `Name: ${name}
+Email: ${email}
+Phone: ${phone}
 
 Message:
-${safeMessage}`,
+${message}`,
     });
 
-    // 2) Send a copy to the customer (only if they provided an email)
+    // 2) Send confirmation to customer (best-effort)
+    const safeEmail = email.trim();
     if (safeEmail) {
-      const isReservation =
-        typeof officeSubject === "string" &&
-        officeSubject.toLowerCase().includes("reservation");
+      try {
+        await resend.emails.send({
+          from: CONTACT_FROM,
+          to: safeEmail,
+          replyTo: "office@hughestownstorage.com",
+          subject: `✅ We received your reservation order — Hughestown Self-Storage`,
+          text: `Hi ${name || ""},
 
-      const customerSubject = isReservation
-        ? "✅ Your Moving Supplies Reservation (Hughestown Self-Storage)"
-        : "Thanks for contacting Hughestown Self-Storage";
+Thanks — we received your reservation order. Here is a copy for your records:
 
-      const customerText = isReservation
-        ? `Hi ${safeName},
+${message}
 
-Thanks — we received your moving supplies reservation request.
-
-Here is a copy of your order for your records:
-
-------------------------
-${safeMessage}
-------------------------
-
-We will contact you shortly to confirm availability and pickup details.
+If you have questions or need to update your order, reply to this email or call us.
 
 – Hughestown Self-Storage
 (570) 362-6150
-office@hughestownstorage.com`
-        : `Hi ${safeName},
-
-Thanks for reaching out! We received your message and will get back to you soon.
-
-– Hughestown Self-Storage
-(570) 362-6150
-office@hughestownstorage.com`;
-
-      await resend.emails.send({
-        from: CONTACT_FROM,
-        to: safeEmail,
-        subject: customerSubject,
-        text: customerText,
-      });
+office@hughestownstorage.com`,
+        });
+      } catch (customerErr: any) {
+        // Don’t fail the whole request; just log it.
+        console.error("CUSTOMER CONFIRMATION EMAIL FAILED:", customerErr);
+      }
     }
 
     return Response.json({ ok: true });
