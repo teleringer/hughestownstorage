@@ -584,41 +584,90 @@ export default function ProductGrid() {
                         </div>
                       </div>
 
-                     <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
-  <div className="flex items-center gap-2">
-    <label className="text-sm text-gray-600">Qty</label>
-    <QtyStepper
-      value={line.qty}
-      onChange={(next) => updateQty(line.item.id, next)}
-    />
+                     <div className="flex items-center gap-2 flex-nowrap">
+
+  {/* Qty label */}
+  <span className="text-sm text-gray-600 shrink-0">
+    Qty
+  </span>
+
+  {/* Stepper */}
+  <div className="inline-flex shrink-0 items-stretch rounded-lg border border-gray-300 bg-white overflow-hidden">
+
+    {/* Decrease */}
+    <button
+      type="button"
+      onClick={() => updateQty(line.item.id, clampQty(line.qty - 1))}
+      disabled={line.qty <= 1}
+      className="
+        w-9 h-9
+        flex items-center justify-center
+        text-red-600 font-bold text-lg
+        active:bg-red-50
+        disabled:opacity-30
+        transition
+      "
+      aria-label="Decrease quantity"
+    >
+      −
+    </button>
+
+    {/* Quantity number */}
+    <div
+      className="
+        min-w-[36px]
+        flex items-center justify-center
+        text-base font-semibold
+        border-x border-gray-200
+        px-2
+      "
+    >
+      {line.qty}
+    </div>
+
+    {/* Increase */}
+    <button
+      type="button"
+      onClick={() => updateQty(line.item.id, clampQty(line.qty + 1))}
+      disabled={line.qty >= 99}
+      className="
+        w-9 h-9
+        flex items-center justify-center
+        text-green-600 font-bold text-lg
+        active:bg-green-50
+        disabled:opacity-30
+        transition
+      "
+      aria-label="Increase quantity"
+    >
+      +
+    </button>
   </div>
 
+  {/* Trash icon */}
   <button
-  type="button"
-  onClick={() => removeFromCart(line.item.id)}
-  className="
-    inline-flex items-center justify-center
-    w-11 h-11 sm:w-auto sm:h-auto
-    border border-gray-300 rounded-full
-    text-gray-700 hover:bg-gray-50
-    active:bg-gray-100
-    transition
-    shrink-0
-  "
-  aria-label={`Remove ${line.item.name}`}
-  title="Remove"
->
-  {/* Trash icon (SVG) */}
-  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
-      fill="currentColor"
-    />
-  </svg>
+    type="button"
+    onClick={() => removeFromCart(line.item.id)}
+    className="
+      w-9 h-9
+      flex items-center justify-center
+      border border-gray-300
+      rounded-full
+      text-gray-600
+      active:bg-gray-100
+      shrink-0
+      transition
+    "
+    aria-label={`Remove ${line.item.name}`}
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
+        fill="currentColor"
+      />
+    </svg>
+  </button>
 
-  {/* Optional text label on desktop only */}
-  <span className="hidden sm:inline ml-2 text-sm font-semibold">Remove</span>
-</button>
 </div>
                     </div>
                   ))}
