@@ -127,7 +127,7 @@ function buildReservationEmailHTML(opts: {
       <div style="display:flex; align-items:center; gap:12px;">
         <img src="${escapeHtml(opts.logoUrl)}" alt="Hughestown Self-Storage" style="display:block; height:36px; width:auto;" />
       </div>
-      <!-- CHANGED: show phone number instead of company name -->
+      <!-- show phone number instead of company name -->
       <div style="font-size:12px; color:#444; font-weight:800;">570-362-6150</div>
     </div>
 
@@ -138,7 +138,7 @@ function buildReservationEmailHTML(opts: {
         ${escapeHtml(opts.intro)}
       </div>
 
-      <!-- Customer details (moved up) -->
+      <!-- Customer details -->
       <div style="margin-top:12px; padding:12px; background:#fff; border:1px solid #eee; border-radius:10px;">
         <div style="font-weight:800; margin-bottom:6px; color:#111;">Customer Details</div>
         <div style="font-size:13px; color:#111; line-height:1.55;">
@@ -148,10 +148,10 @@ function buildReservationEmailHTML(opts: {
         </div>
       </div>
 
-      <!-- Notes (moved up) -->
+      <!-- Notes -->
       ${notesBlock}
 
-      <!-- Items table (moved down) -->
+      <!-- Items table -->
       <div style="margin-top:14px; border:1px solid #eee; border-radius:12px; overflow:hidden;">
         <div style="background:#f2f3f5; padding:10px 12px; font-size:12px; font-weight:900; color:#111; display:flex; justify-content:space-between;">
           <div>ITEM</div>
@@ -195,14 +195,14 @@ function buildReservationEmailHTML(opts: {
       <!-- Footer -->
       <hr style="border:none; border-top:1px solid #eee; margin:16px 0;" />
 
-      <!-- ADDED: footer buttons -->
+      <!-- Footer buttons -->
       <div style="text-align:center; margin:6px 0 14px 0;">
         <a href="https://hughestownstorage.com"
            style="display:inline-block; margin:5px; padding:10px 16px; background:#111; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
           Home
         </a>
         <a href="https://hughestownstorage.ccstorage.com/find_units"
-           style="display:inline-block; margin:5px; padding:10px 16px; background:#c2410c; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
+           style="display:inline-block; margin:5px; padding:10px 16px; background:#EC1516; color:#fff; text-decoration:none; border-radius:8px; font-size:13px; font-weight:800;">
           Rent Now
         </a>
         <a href="https://hughestownstorage.ccstorage.com/session/new"
@@ -213,6 +213,11 @@ function buildReservationEmailHTML(opts: {
 
       <div style="font-size:12px; color:#111;">
         <div style="font-weight:900;">Hughestown Self-Storage</div>
+
+        <!-- ADDED: address (left aligned, same style as phone line) -->
+        <div>133 New Street</div>
+        <div>Hughestown, PA 18640</div>
+
         <div>(570) 362-6150</div>
         <div><a href="mailto:office@hughestownstorage.com" style="color:#0b57d0;">office@hughestownstorage.com</a></div>
         <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(opts.siteUrl.replace(/^https?:\/\//, ""))}</a></div>
@@ -222,7 +227,7 @@ function buildReservationEmailHTML(opts: {
         Subject: ${escapeHtml(opts.subjectLine)}
       </div>
 
-      <!-- ADDED: copyright line, centered, small -->
+      <!-- copyright line -->
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
