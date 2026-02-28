@@ -6,7 +6,7 @@ type Item = {
   id: string;
   name: string;
   size?: string;
-  price: string;
+  price: string; // like "$2.99"
   description?: string;
   image?: string;
 };
@@ -25,7 +25,7 @@ function slugify(s: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-// phone helpers (US 10-digit)
+// Phone helpers (US 10-digit)
 function digitsOnly(s: string) {
   return (s || '').replace(/\D/g, '');
 }
@@ -40,6 +40,20 @@ function formatUsPhone(digits: string) {
   if (d.length < 4) return `(${a}`;
   if (d.length < 7) return `(${a}) ${b}`;
   return `(${a}) ${b}-${c}`;
+}
+
+// Money helpers (cents)
+function priceToCents(price: string) {
+  // "$12.99" -> 1299
+  const cleaned = (price || '').replace(/[^0-9.]/g, '');
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n * 100);
+}
+
+function centsToUsd(cents: number) {
+  const safe = Number.isFinite(cents) ? cents : 0;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(safe / 100);
 }
 
 export default function ProductGrid() {
@@ -189,6 +203,12 @@ export default function ProductGrid() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string>('');
 
+  // totals
+  const TAX_RATE = 0.06;
+  const subtotalCents = cart.reduce((sum, line) => sum + priceToCents(line.item.price) * line.qty, 0);
+  const taxCents = Math.round(subtotalCents * TAX_RATE);
+  const grandTotalCents = subtotalCents + taxCents;
+
   // auto-hide toast
   useEffect(() => {
     if (!justAdded) return;
@@ -219,20 +239,7 @@ export default function ProductGrid() {
 
   function updateQty(itemId: string, qty: number) {
     const safeQty = Number.isFinite(qty) ? Math.max(1, Math.min(999, qty)) : 1;
-    setCart((prev) =>
-      prev.map((l) => (l.item.id === itemId ? { ...l, qty: safeQty } : l))
-    );
-  }
-
-  // NEW: stepper helper for +/- buttons
-  function updateQtyDelta(itemId: string, delta: number) {
-    setCart((prev) =>
-      prev.map((l) => {
-        if (l.item.id !== itemId) return l;
-        const next = Math.max(1, Math.min(999, l.qty + delta));
-        return { ...l, qty: next };
-      })
-    );
+    setCart((prev) => prev.map((l) => (l.item.id === itemId ? { ...l, qty: safeQty } : l)));
   }
 
   function openOrderModal() {
@@ -249,7 +256,7 @@ export default function ProductGrid() {
     setStatusMsg('');
   }
 
-  // phone mask handler (digits only, formatted)
+  // phone mask handler
   function handlePhoneChange(next: string) {
     const d = digitsOnly(next).slice(0, 10);
     setPhone(formatUsPhone(d));
@@ -285,12 +292,23 @@ export default function ProductGrid() {
       name: fullName.trim(),
       phone: formatUsPhone(phoneDigits),
       email: email.trim(),
-      subject: `🔶 HSS Moving Supplies Reservation (${cart.length} items) – ${fullName.trim()}`,
+      subject: `🔶 HSS Moving Supplies Reservation (${cartCount} items) – ${fullName.trim()}`,
+      // NEW: totals so the email can show Subtotal/Tax/Grand Total
+      totals: {
+        subtotalCents,
+        taxRate: TAX_RATE,
+        taxCents,
+        grandTotalCents
+      },
       message: [
         `MOVING SUPPLIES RESERVATION ORDER`,
         ``,
         `Items:`,
         ...lines,
+        ``,
+        `Subtotal: ${centsToUsd(subtotalCents)}`,
+        `PA Sales Tax (6%): ${centsToUsd(taxCents)}`,
+        `Grand Total: ${centsToUsd(grandTotalCents)}`,
         ``,
         notes.trim() ? `Notes: ${notes.trim()}` : null,
         `---`,
@@ -322,9 +340,7 @@ export default function ProductGrid() {
       }
 
       setStatus('success');
-      setStatusMsg(
-        "Thanks — we received your reservation order. We'll contact you shortly to confirm availability."
-      );
+      setStatusMsg("Thanks — we received your reservation order. We'll contact you shortly to confirm availability.");
       setSubmitting(false);
 
       setCart([]);
@@ -366,15 +382,8 @@ export default function ProductGrid() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {products.map((product, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
+            <div key={index} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-lg mb-4" />
               <h3 className="text-lg font-semibold text-gray-800 mb-2">{product.name}</h3>
               <p className="text-sm text-gray-600 mb-2">{product.size}</p>
               <p className="text-sm text-gray-600 mb-4">{product.description}</p>
@@ -393,9 +402,7 @@ export default function ProductGrid() {
         </div>
 
         <div className="bg-orange-50 rounded-lg p-8 mt-12">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-            Moving Kits Available
-          </h3>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Moving Kits Available</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg p-6 text-center">
               <h4 className="text-lg font-semibold mb-4">Studio Apartment Kit</h4>
@@ -417,9 +424,7 @@ export default function ProductGrid() {
             </div>
 
             <div className="bg-white rounded-lg p-6 text-center border-2 border-orange-600">
-              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">
-                Most Popular
-              </div>
+              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">Most Popular</div>
               <h4 className="text-lg font-semibold mb-4">2-3 Bedroom Kit</h4>
               <div className="text-3xl font-bold text-orange-600 mb-4">$89.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
@@ -468,20 +473,15 @@ export default function ProductGrid() {
 
       {/* Order Modal */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          role="dialog"
-          aria-modal="true"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
 
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6">
+          {/* Make modal scrollable on mobile */}
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Review your items, then submit to reserve for pickup.
-                </p>
+                <p className="text-sm text-gray-600 mt-1">Review your items, then submit to reserve for pickup.</p>
               </div>
               <button
                 type="button"
@@ -499,10 +499,7 @@ export default function ProductGrid() {
               ) : (
                 <div className="space-y-3">
                   {cart.map((line) => (
-                    <div
-                      key={line.item.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
-                    >
+                    <div key={line.item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                       <div>
                         <div className="font-semibold text-gray-800">{line.item.name}</div>
                         <div className="text-sm text-gray-600">
@@ -513,44 +510,14 @@ export default function ProductGrid() {
 
                       <div className="flex items-center gap-3">
                         <label className="text-sm text-gray-600">Qty</label>
-
-                        {/* NEW: Mobile-friendly stepper + auto-select input */}
-                        <div className="flex items-center">
-                          <button
-                            type="button"
-                            onClick={() => updateQtyDelta(line.item.id, -1)}
-                            className="h-10 w-10 rounded-l-lg border border-gray-300 bg-white text-gray-800 font-bold hover:bg-gray-50 active:bg-gray-100"
-                            aria-label="Decrease quantity"
-                          >
-                            –
-                          </button>
-
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={String(line.qty)}
-                            onFocus={(e) => e.currentTarget.select()}
-                            onClick={(e) => e.currentTarget.select()}
-                            onChange={(e) => {
-                              const raw = e.target.value.replace(/\D/g, '');
-                              const next = raw === '' ? 1 : Math.max(1, Math.min(999, parseInt(raw, 10)));
-                              updateQty(line.item.id, next);
-                            }}
-                            className="h-10 w-16 text-center border-y border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            aria-label="Quantity"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() => updateQtyDelta(line.item.id, 1)}
-                            className="h-10 w-10 rounded-r-lg border border-gray-300 bg-white text-gray-800 font-bold hover:bg-gray-50 active:bg-gray-100"
-                            aria-label="Increase quantity"
-                          >
-                            +
-                          </button>
-                        </div>
-
+                        <input
+                          type="number"
+                          min={1}
+                          max={999}
+                          value={line.qty}
+                          onChange={(e) => updateQty(line.item.id, parseInt(e.target.value || '1', 10))}
+                          className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        />
                         <button
                           type="button"
                           onClick={() => removeFromCart(line.item.id)}
@@ -564,6 +531,27 @@ export default function ProductGrid() {
                 </div>
               )}
             </div>
+
+            {/* Totals */}
+            {cart.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>Subtotal</span>
+                  <span className="font-semibold">{centsToUsd(subtotalCents)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-700 mt-2">
+                  <span>PA Sales Tax (6%)</span>
+                  <span className="font-semibold">{centsToUsd(taxCents)}</span>
+                </div>
+                <div className="flex justify-between text-base text-gray-900 mt-3 pt-3 border-t border-gray-200">
+                  <span className="font-bold">Grand Total</span>
+                  <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Totals shown are estimates. Final total confirmed at pickup.
+                </p>
+              </div>
+            )}
 
             <form onSubmit={submitReservationOrder} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -585,7 +573,7 @@ export default function ProductGrid() {
                     onChange={(e) => handlePhoneChange(e.target.value)}
                     inputMode="numeric"
                     autoComplete="tel"
-                    maxLength={14} // (123) 456-7890
+                    maxLength={14}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="(570) 456-8765"
                   />
