@@ -368,7 +368,7 @@ export default function ProductGrid() {
       name: fullName.trim(),
       phone: formatUsPhone(phoneDigits),
       email: email.trim(),
-      subject: `🔶 HSS Moving Supplies Reservation (${cartCount} items) – ${fullName.trim()}`,
+      subject: `📦 HSS Moving Supplies Order (${cartCount} items) – ${fullName.trim()}`,
       // NEW: totals so the email can show Subtotal/Tax/Grand Total
       totals: {
         subtotalCents,
