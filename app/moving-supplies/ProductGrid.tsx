@@ -56,6 +56,53 @@ function centsToUsd(cents: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(safe / 100);
 }
 
+function clampQty(qty: number) {
+  if (!Number.isFinite(qty)) return 1;
+  return Math.max(1, Math.min(999, Math.trunc(qty)));
+}
+
+function QtyStepper({
+  value,
+  onChange
+}: {
+  value: number;
+  onChange: (next: number) => void;
+}) {
+  const v = clampQty(value);
+
+  return (
+    <div className="inline-flex items-center rounded-lg border border-gray-300 overflow-hidden bg-white">
+      <button
+        type="button"
+        onClick={() => onChange(clampQty(v - 1))}
+        disabled={v <= 1}
+        className="px-3 py-2 text-gray-800 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Decrease quantity"
+      >
+        −
+      </button>
+
+      {/* Read-only display avoids mobile caret/input quirks */}
+      <div
+        className="min-w-[44px] text-center px-3 py-2 text-sm font-semibold text-gray-900 select-none"
+        aria-label={`Quantity ${v}`}
+      >
+        {v}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onChange(clampQty(v + 1))}
+        disabled={v >= 999}
+        className="px-3 py-2 text-gray-800 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Increase quantity"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 export default function ProductGrid() {
   const products: Item[] = [
     {
@@ -510,14 +557,13 @@ export default function ProductGrid() {
 
                       <div className="flex items-center gap-3">
                         <label className="text-sm text-gray-600">Qty</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={999}
+
+                        {/* NEW: Mobile-friendly stepper */}
+                        <QtyStepper
                           value={line.qty}
-                          onChange={(e) => updateQty(line.item.id, parseInt(e.target.value || '1', 10))}
-                          className="w-20 border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          onChange={(next) => updateQty(line.item.id, next)}
                         />
+
                         <button
                           type="button"
                           onClick={() => removeFromCart(line.item.id)}
