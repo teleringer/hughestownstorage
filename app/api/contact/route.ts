@@ -141,7 +141,7 @@ function buildReservationEmailHTML(opts: {
       <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:12px;">
         ${escapeHtml(opts.intro)}
       </div>
-<div style="font-size:12px; color:#666; margin:10px 0 14px 0; line-height:1.4;">
+<div style="font-size:11px; color:#666; margin:10px 0 14px 0; line-height:1.4;">
   <span style="font-weight:700;">Subject:</span>
   ${escapeHtml(opts.subjectLine.replace("🔶 ", ""))}
 </div>
@@ -236,6 +236,7 @@ function buildReservationEmailHTML(opts: {
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
+<hr style="border:none; border-top:1px solid #eee; margin:18px 0;" />
 <div style="margin-top:18px; font-size:10px; color:#888; line-height:1.5;">
   <b>Confidentiality Notice:</b><br/>
   This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage. 
@@ -279,7 +280,7 @@ export async function POST(req: Request) {
 
     const isReservation =
       inboundSubject.startsWith("HSS Moving Supplies Order") ||
-      /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
+      /MOVING SUPPLIES ORDER/i.test(message);
 
     const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
     const subject = inboundSubject || fallbackSubject;
@@ -291,8 +292,8 @@ export async function POST(req: Request) {
       const { items, notes } = parseReservationMessage(message);
 
       const officeHtml = buildReservationEmailHTML({
-        title: "New moving supplies reservation",
-        intro: "A customer submitted a moving supplies reservation order. Details are below.",
+        title: "New moving supplies order",
+        intro: "A customer submitted a moving supplies order. Details are below.",
         subjectLine: subject,
         name: name || "Customer",
         phone: phone || "—",
