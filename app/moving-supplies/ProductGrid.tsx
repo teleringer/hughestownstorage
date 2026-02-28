@@ -71,12 +71,24 @@ function QtyStepper({
   const v = clampQty(value);
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-gray-300 overflow-hidden bg-white">
+    <div
+      className="inline-flex items-stretch rounded-xl border border-gray-300 overflow-hidden bg-white shadow-sm"
+      role="group"
+      aria-label="Quantity selector"
+    >
       <button
         type="button"
         onClick={() => onChange(clampQty(v - 1))}
         disabled={v <= 1}
-        className="px-3 py-2 text-gray-800 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="
+          px-4 py-3 sm:px-3 sm:py-2
+          text-gray-900 font-semibold
+          hover:bg-gray-50 active:bg-gray-100
+          disabled:opacity-40 disabled:cursor-not-allowed
+          select-none
+          active:scale-[0.98]
+          transition
+        "
         aria-label="Decrease quantity"
       >
         −
@@ -84,7 +96,17 @@ function QtyStepper({
 
       {/* Read-only display avoids mobile caret/input quirks */}
       <div
-        className="min-w-[44px] text-center px-3 py-2 text-sm font-semibold text-gray-900 select-none"
+        className="
+          min-w-[52px] sm:min-w-[44px]
+          flex items-center justify-center
+          px-3
+          text-base sm:text-sm
+          font-bold text-gray-900
+          bg-white
+          select-none
+          border-x border-gray-200
+        "
+        aria-live="polite"
         aria-label={`Quantity ${v}`}
       >
         {v}
@@ -94,7 +116,15 @@ function QtyStepper({
         type="button"
         onClick={() => onChange(clampQty(v + 1))}
         disabled={v >= 999}
-        className="px-3 py-2 text-gray-800 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="
+          px-4 py-3 sm:px-3 sm:py-2
+          text-gray-900 font-semibold
+          hover:bg-gray-50 active:bg-gray-100
+          disabled:opacity-40 disabled:cursor-not-allowed
+          select-none
+          active:scale-[0.98]
+          transition
+        "
         aria-label="Increase quantity"
       >
         +
