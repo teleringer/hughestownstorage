@@ -279,8 +279,8 @@ export async function POST(req: Request) {
     const resend = new Resend(RESEND_API_KEY);
 
     const isReservation =
-      inboundSubject.startsWith("HSS Moving Supplies Order") ||
-      /MOVING SUPPLIES ORDER/i.test(message);
+  /^(\p{Extended_Pictographic}\s*)?HSS Moving Supplies (Order|Reservation)/u.test(inboundSubject) ||
+  /MOVING SUPPLIES (ORDER|RESERVATION) ORDER/i.test(message);
 
     const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
     const subject = inboundSubject || fallbackSubject;
