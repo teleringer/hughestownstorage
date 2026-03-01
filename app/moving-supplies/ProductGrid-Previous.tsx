@@ -146,7 +146,7 @@ export default function ProductGrid() {
       id: 'medium-moving-box',
       name: 'Medium Moving Box',
       size: '18" x 14" x 12"',
-      price: '$3.99',
+      price: '$3.49',
       description: 'Ideal for clothes, linens, and medium items',
       image: '/images/products/box-medium.jpg'
     },
@@ -154,7 +154,7 @@ export default function ProductGrid() {
       id: 'large-moving-box',
       name: 'Large Moving Box',
       size: '24" x 18" x 18"',
-      price: '$5.99',
+      price: '$4.99',
       description: 'Great for lightweight bulky items like pillows',
       image: '/images/products/box-large.jpg'
     },
@@ -162,7 +162,7 @@ export default function ProductGrid() {
       id: 'wardrobe-box',
       name: 'Wardrobe Box',
       size: '24" x 21" x 46"',
-      price: '$39.99',
+      price: '$12.99',
       description: 'Tall box with hanging bar for clothes',
       image: '/images/products/wardrobe-box.jpg'
     },
@@ -170,16 +170,16 @@ export default function ProductGrid() {
       id: 'bubble-wrap',
       name: 'Bubble Wrap',
       size: '12" x 50ft Roll',
-      price: '$14.99',
+      price: '$8.99',
       description: 'Protective wrapping for fragile items',
       image: '/images/products/bubble-wrap.jpg'
     },
     {
       id: 'packing-tape',
       name: 'Packing Tape',
-      size: '1.88" x 60 yards',
+      size: '2" x 55 yards',
       price: '$3.99',
-      description: 'Heavy-duty 2.7 mil adhesive tape for sealing boxes',
+      description: 'Heavy-duty adhesive tape for sealing boxes',
       image: '/images/products/packing-tape.jpg'
     },
     {
@@ -193,16 +193,16 @@ export default function ProductGrid() {
     {
       id: 'packing-paper',
       name: 'Packing Paper',
-      size: '10 lb Bundle',
-      price: '$39.99',
-      description: '27" x 17" Clean newsprint 320 sheets for wrapping items',
+      size: '25 lb Bundle',
+      price: '$12.99',
+      description: 'Clean newsprint for wrapping items',
       image: '/images/products/packing-paper.jpg'
     },
     {
       id: 'mattress-bag',
       name: 'Mattress Bag',
       size: 'Queen Size',
-      price: '$25.99',
+      price: '$7.99',
       description: 'Plastic protection for mattresses',
       image: '/images/products/mattress-bag.jpg'
     },
@@ -210,24 +210,24 @@ export default function ProductGrid() {
       id: 'box-cutter',
       name: 'Box Cutter',
       size: 'Utility Knife',
-      price: '$12.99',
-      description: 'Westcott Heavy Duty Straight Blade Utility Cutter, Silver, 1-Count',
+      price: '$4.99',
+      description: 'Sharp blade for cutting tape and boxes',
       image: '/images/products/box-cutter.jpg'
     },
     {
       id: 'marker-set',
       name: 'Marker Set',
       size: 'Pack of 4',
-      price: '$8.99',
-      description: 'Sharpie Permanent Markers, Chisel Tip, Black, 4 Count',
+      price: '$5.99',
+      description: 'Permanent markers for labeling boxes',
       image: '/images/products/markers.jpg'
     },
     {
       id: 'padlock',
       name: 'Padlock',
       size: 'Heavy Duty',
-      price: '$22.99',
-      description: 'Brinks Stainless Steel 60mm Keyed Discus Padlock with 5/8in Shackle',
+      price: '$12.99',
+      description: 'Secure lock for storage unit',
       image: '/images/products/padlock.jpg'
     }
   ];
