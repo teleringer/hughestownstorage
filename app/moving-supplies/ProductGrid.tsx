@@ -632,18 +632,20 @@ export default function ProductGrid() {
             <div class="muted"><span class="bold">Hughestown Self-Storage</span></div>
             <div class="muted">Submitted: ${order.submittedAt}</div>
 
-            <div class="addr-grid">
-              <div class="addr-left muted">
-                <span class="bold">Hughestown Self-Storage</span><br/>
-                133 New Street<br/>
-                Hughestown, PA 18640<br/>
-                (570) 362-6150
-              </div>
-              <div class="addr-right muted">
-                www.hughestownstorage.com<br/>
-                office@hughestownstorage.com
-              </div>
-            </div>
+<div class="addr-grid">
+  <div class="addr-left muted">
+    <span class="bold">Hughestown Self-Storage</span><br/>
+    133 New Street<br/>
+    Hughestown, PA 18640<br/>
+    (570) 362-6150
+  </div>
+  <div class="addr-right muted">
+    <br/>
+    <br/>
+    www.hughestownstorage.com<br/>
+    office@hughestownstorage.com
+  </div>
+</div>
           </div>
 
           <div class="header-right">
