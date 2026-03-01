@@ -990,26 +990,17 @@ export default function ProductGrid() {
       </div>
 
       {/* Order Modal */}
-{isOpen && (
-  <div
-    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pt-[15vh] sm:pt-0 px-0 sm:px-4"
-    role="dialog"
-    aria-modal="true"
-  >
-    {/* darken background (tap outside closes) */}
-    <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
 
-    {/* Mobile bottom-sheet style (full width, full bottom) */}
-    <div
-      className={[
-        'relative w-full bg-white shadow-xl overflow-y-auto',
-        'h-[85vh] sm:h-auto sm:max-h-[85vh]',
-        'rounded-t-2xl sm:rounded-xl',
-        'px-4 sm:px-6 pt-5 sm:pt-6',
-        // leave room for the thin black action bar on mobile cart view
-        modalView === 'cart' ? 'pb-20 sm:pb-6' : 'pb-6'
-      ].join(' ')}
-    >
+          {/* Make modal scrollable on mobile */}
+          <div
+            className={[
+              'relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto',
+              // Premium mobile bottom bar needs space so content isn’t hidden behind it
+              modalView === 'cart' ? 'pb-28 sm:pb-6' : ''
+            ].join(' ')}
           >
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
@@ -1348,62 +1339,66 @@ export default function ProductGrid() {
                   </p>
                 </form>
 
-{/* ✅ MOBILE THIN BLACK ACTION BAR (Cart view only) */}
-{modalView === 'cart' && (
-  <div className="sm:hidden sticky bottom-0 -mx-4 mt-6">
-    <div className="bg-black px-3 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.25)]">
-      <div className="flex items-center justify-between gap-2">
-        {/* Left: small cart count */}
-        <div className="text-[11px] text-white/90 whitespace-nowrap">
-          Cart{' '}
-          <span className="font-semibold text-white">{cartCount}</span>{' '}
-          {cartCount === 1 ? 'item' : 'items'}
-        </div>
+                {/* ✅ PREMIUM MOBILE BOTTOM BAR (Cart view only) */}
+                {modalView === 'cart' && (
+                  <div className="sm:hidden sticky bottom-0 -mx-6 mt-6">
+                    {/* soft fade so it feels “app-like” */}
+                    <div className="pointer-events-none h-8 bg-gradient-to-t from-white to-white/0" />
 
-        {/* Middle: Add More */}
-        <button
-          type="button"
-          onClick={closeModal}
-          className="
-            inline-flex items-center justify-center
-            rounded-full
-            bg-[#E7B723]
-            text-black
-            px-3 py-1.5
-            text-xs font-semibold
-            active:scale-[0.99]
-            transition
-            whitespace-nowrap
-          "
-          aria-label="Add more items"
-        >
-          + Add More
-        </button>
+                    <div className="border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-xs text-gray-500">
+                            Cart • <span className="font-semibold text-gray-800">{cartCount}</span> items
+                          </div>
+                          <div className="text-sm font-bold text-gray-900 truncate">
+                            Est. Total: {centsToUsd(grandTotalCents)}
+                          </div>
+                        </div>
 
-        {/* Right: Checkout */}
-        <button
-          type="button"
-          onClick={scrollToCheckout}
-          className="
-            inline-flex items-center justify-center gap-1
-            rounded-full
-            bg-[#E7B723]
-            text-black
-            px-3 py-1.5
-            text-xs font-semibold
-            active:scale-[0.99]
-            transition
-            whitespace-nowrap
-          "
-          aria-label="Go to checkout"
-        >
-          Checkout
-          <ChevronDownIcon className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={closeModal}
+                            className="
+                              inline-flex items-center justify-center
+                              rounded-full border border-gray-300
+                              px-4 py-2.5
+                              text-sm font-semibold text-gray-800
+                              active:bg-gray-100
+                              transition
+                            "
+                            aria-label="Continue shopping"
+                          >
+                            Add More
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={scrollToCheckout}
+                            className="
+                              inline-flex items-center justify-center gap-2
+                              rounded-full
+                              px-4 py-2.5
+                              text-sm font-semibold text-white
+                              shadow-md
+                              active:scale-[0.99]
+                              transition
+                            "
+                            style={{
+                              background:
+                                'linear-gradient(135deg, #EC1516 0%, #ff3b30 55%, #ff6a5f 100%)'
+                            }}
+                            aria-label="Go to checkout form"
+                          >
+                            Checkout
+                            <ChevronDownIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
