@@ -611,6 +611,14 @@ export default function ProductGrid() {
           <h1>Moving Supplies Order</h1>
           <div class="muted">Hughestown Self-Storage</div>
           <div class="muted">Submitted: ${order.submittedAt}</div>
+          <div class="muted" style="margin-top:8px; line-height:1.4;">
+  Hughestown Self-Storage<br/>
+  133 New Street<br/>
+  Hughestown, PA 18640<br/>
+  (570) 362-6150<br/>
+  www.hughestownstorage.com<br/>
+  office@hughestownstorage.com
+</div>
 
           <div class="box">
             <div class="bold">Customer</div>
@@ -962,9 +970,21 @@ export default function ProductGrid() {
                 <div className="rounded-lg border bg-white p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-lg font-bold">Order Summary</div>
-                      <div className="text-sm text-gray-600">Hughestown Self-Storage Moving Supplies</div>
-                    </div>
+  <div className="text-lg font-bold">Order Summary</div>
+
+  <div className="text-sm text-gray-700 font-semibold mt-1">
+    Hughestown Self-Storage Moving Supplies
+  </div>
+
+  <div className="text-xs text-gray-600 mt-2 space-y-0.5 leading-relaxed">
+    <div>Hughestown Self-Storage</div>
+    <div>133 New Street</div>
+    <div>Hughestown, PA 18640</div>
+    <div>(570) 362-6150</div>
+    <div>www.hughestownstorage.com</div>
+    <div>office@hughestownstorage.com</div>
+  </div>
+</div>
 
                     <button
                       type="button"
