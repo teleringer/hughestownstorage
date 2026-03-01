@@ -237,23 +237,23 @@ export default function ProductGrid() {
       {
         id: 'studio-apartment-kit',
         name: 'Studio Apartment Kit',
-        price: '$49.99',
+        price: '$69.99',
         description:
           'Includes: 10 Small boxes, 5 Medium boxes, 2 Rolls of tape, 1 Roll bubble wrap, 1 Marker'
       },
       {
         id: '2-3-bedroom-kit',
         name: '2-3 Bedroom Kit',
-        price: '$89.99',
+        price: '$169.99',
         description:
-          'Includes: 15 Small boxes, 10 Medium boxes, 5 Large boxes, 3 Rolls of tape, 2 Rolls bubble wrap, 1 Bundle packing paper, 2 Markers'
+          'Includes: 15 Small boxes, 10 Medium boxes, 5 Large boxes, 3 Rolls of tape, 2 Rolls bubble wrap, 1 Bundle packing paper, 1 Markers'
       },
       {
         id: '4plus-bedroom-kit',
         name: '4+ Bedroom Kit',
-        price: '$149.99',
+        price: '$379.99',
         description:
-          'Includes: 20 Small boxes, 15 Medium boxes, 10 Large boxes, 2 Wardrobe boxes, 5 Rolls of tape, 3 Rolls bubble wrap, 2 Bundles packing paper, 4 Moving blankets, 3 Markers'
+          'Includes: 20 Small boxes, 15 Medium boxes, 10 Large boxes, 2 Wardrobe boxes, 5 Rolls of tape, 3 Rolls bubble wrap, 2 Bundles packing paper, 4 Moving blankets, 2 Markers'
       }
     ],
     []
