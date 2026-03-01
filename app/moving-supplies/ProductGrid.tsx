@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 type Item = {
   id: string;
@@ -129,6 +129,182 @@ function QtyStepper({
         ＋
       </button>
     </div>
+  );
+}
+
+/** Draggable floating Reserve Order button */
+function FloatingReserveButton({
+  count,
+  onClick
+}: {
+  count: number;
+  onClick: () => void;
+}) {
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  // position from top-left of viewport
+  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const dragRef = useRef<{
+    active: boolean;
+    pointerId: number | null;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+    moved: boolean;
+  }>({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    originX: 0,
+    originY: 0,
+    moved: false
+  });
+
+  // init position (restore from localStorage if present)
+  useEffect(() => {
+    const key = 'hss_moving_supplies_floating_btn_pos_v1';
+
+    const defaultPos = () => {
+      const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
+      const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+      // start near bottom center
+      return {
+        x: Math.max(12, Math.round(w / 2 - 90)),
+        y: Math.max(12, Math.round(h - 140))
+      };
+    };
+
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Number.isFinite(parsed?.x) && Number.isFinite(parsed?.y)) {
+          setPos({ x: parsed.x, y: parsed.y });
+          return;
+        }
+      }
+    } catch {}
+
+    setPos(defaultPos());
+  }, []);
+
+  // keep on-screen on resize
+  useEffect(() => {
+    function clampToViewport(x: number, y: number) {
+      const el = btnRef.current;
+      const bw = el?.offsetWidth ?? 190;
+      const bh = el?.offsetHeight ?? 48;
+      const maxX = Math.max(8, window.innerWidth - bw - 8);
+      const maxY = Math.max(8, window.innerHeight - bh - 8);
+      return {
+        x: Math.min(Math.max(8, x), maxX),
+        y: Math.min(Math.max(8, y), maxY)
+      };
+    }
+
+    function onResize() {
+      setPos((p) => clampToViewport(p.x, p.y));
+    }
+
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // persist
+  useEffect(() => {
+    const key = 'hss_moving_supplies_floating_btn_pos_v1';
+    try {
+      localStorage.setItem(key, JSON.stringify(pos));
+    } catch {}
+  }, [pos]);
+
+  function clampToViewport(x: number, y: number) {
+    const el = btnRef.current;
+    const bw = el?.offsetWidth ?? 190;
+    const bh = el?.offsetHeight ?? 48;
+    const maxX = Math.max(8, window.innerWidth - bw - 8);
+    const maxY = Math.max(8, window.innerHeight - bh - 8);
+    return {
+      x: Math.min(Math.max(8, x), maxX),
+      y: Math.min(Math.max(8, y), maxY)
+    };
+  }
+
+  function onPointerDown(e: React.PointerEvent) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+
+    const el = btnRef.current;
+    if (!el) return;
+
+    el.setPointerCapture(e.pointerId);
+
+    dragRef.current.active = true;
+    dragRef.current.pointerId = e.pointerId;
+    dragRef.current.startX = e.clientX;
+    dragRef.current.startY = e.clientY;
+    dragRef.current.originX = pos.x;
+    dragRef.current.originY = pos.y;
+    dragRef.current.moved = false;
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragRef.current.active) return;
+    if (dragRef.current.pointerId !== e.pointerId) return;
+
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+
+    if (!dragRef.current.moved && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      dragRef.current.moved = true;
+    }
+
+    const next = clampToViewport(dragRef.current.originX + dx, dragRef.current.originY + dy);
+    setPos(next);
+  }
+
+  function endDrag(e: React.PointerEvent) {
+    if (!dragRef.current.active) return;
+    if (dragRef.current.pointerId !== e.pointerId) return;
+
+    dragRef.current.active = false;
+    dragRef.current.pointerId = null;
+
+    // treat as click if they didn't really drag
+    if (!dragRef.current.moved) onClick();
+  }
+
+  return (
+    <button
+      ref={btnRef}
+      type="button"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      className="
+        fixed z-[55]
+        bg-orange-600 text-white
+        px-6 py-3
+        rounded-full font-semibold
+        hover:bg-orange-700
+        shadow-xl
+        active:scale-[0.98]
+        transition
+        select-none
+      "
+      style={{
+        left: `${pos.x}px`,
+        top: `${pos.y}px`,
+        touchAction: 'none' // required for mobile dragging
+      }}
+      aria-label={`Open reserve order. ${count} items.`}
+      title="Drag to move • Tap to open"
+    >
+      Reserve Order ({count})
+    </button>
   );
 }
 
@@ -429,6 +605,9 @@ export default function ProductGrid() {
 
   return (
     <section className="py-16 bg-white" data-product-shop>
+      {/* ✅ Floating draggable Reserve Order button */}
+      {cartCount > 0 && <FloatingReserveButton count={cartCount} onClick={openOrderModal} />}
+
       {/* Toast feedback */}
       {justAdded && (
         <div className="fixed top-24 right-4 z-[60]">
@@ -444,17 +623,7 @@ export default function ProductGrid() {
           <p className="text-lg text-gray-600">Quality packing materials at competitive prices</p>
         </div>
 
-        {cartCount > 0 && (
-          <div className="sticky top-4 z-10 mb-6 flex justify-center">
-            <button
-              type="button"
-              onClick={openOrderModal}
-              className="bg-orange-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-700 shadow-lg"
-            >
-              Reserve Order ({cartCount})
-            </button>
-          </div>
-        )}
+        {/* ❌ Removed the old sticky Reserve Order button */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {products.map((product, index) => (
@@ -500,7 +669,9 @@ export default function ProductGrid() {
             </div>
 
             <div className="bg-white rounded-lg p-6 text-center border-2 border-orange-600">
-              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">Most Popular</div>
+              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">
+                Most Popular
+              </div>
               <h4 className="text-lg font-semibold mb-4">2-3 Bedroom Kit</h4>
               <div className="text-3xl font-bold text-orange-600 mb-4">$179.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
@@ -584,91 +755,86 @@ export default function ProductGrid() {
                         </div>
                       </div>
 
-                     <div className="flex items-center gap-2 flex-nowrap">
+                      <div className="flex items-center gap-2 flex-nowrap">
+                        {/* Qty label */}
+                        <span className="text-sm text-gray-600 shrink-0">Qty</span>
 
-  {/* Qty label */}
-  <span className="text-sm text-gray-600 shrink-0">
-    Qty
-  </span>
+                        {/* Stepper */}
+                        <div className="inline-flex shrink-0 items-stretch rounded-lg border border-gray-300 bg-white overflow-hidden">
+                          {/* Decrease */}
+                          <button
+                            type="button"
+                            onClick={() => updateQty(line.item.id, clampQty(line.qty - 1))}
+                            disabled={line.qty <= 1}
+                            className="
+                              w-9 h-9
+                              flex items-center justify-center
+                              text-red-600 font-bold text-lg
+                              active:bg-red-50
+                              disabled:opacity-30
+                              transition
+                            "
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
 
-  {/* Stepper */}
-  <div className="inline-flex shrink-0 items-stretch rounded-lg border border-gray-300 bg-white overflow-hidden">
+                          {/* Quantity number */}
+                          <div
+                            className="
+                              min-w-[36px]
+                              flex items-center justify-center
+                              text-base font-semibold
+                              border-x border-gray-200
+                              px-2
+                            "
+                          >
+                            {line.qty}
+                          </div>
 
-    {/* Decrease */}
-    <button
-      type="button"
-      onClick={() => updateQty(line.item.id, clampQty(line.qty - 1))}
-      disabled={line.qty <= 1}
-      className="
-        w-9 h-9
-        flex items-center justify-center
-        text-red-600 font-bold text-lg
-        active:bg-red-50
-        disabled:opacity-30
-        transition
-      "
-      aria-label="Decrease quantity"
-    >
-      −
-    </button>
+                          {/* Increase */}
+                          <button
+                            type="button"
+                            onClick={() => updateQty(line.item.id, clampQty(line.qty + 1))}
+                            disabled={line.qty >= 99}
+                            className="
+                              w-9 h-9
+                              flex items-center justify-center
+                              text-green-600 font-bold text-lg
+                              active:bg-green-50
+                              disabled:opacity-30
+                              transition
+                            "
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
 
-    {/* Quantity number */}
-    <div
-      className="
-        min-w-[36px]
-        flex items-center justify-center
-        text-base font-semibold
-        border-x border-gray-200
-        px-2
-      "
-    >
-      {line.qty}
-    </div>
-
-    {/* Increase */}
-    <button
-      type="button"
-      onClick={() => updateQty(line.item.id, clampQty(line.qty + 1))}
-      disabled={line.qty >= 99}
-      className="
-        w-9 h-9
-        flex items-center justify-center
-        text-green-600 font-bold text-lg
-        active:bg-green-50
-        disabled:opacity-30
-        transition
-      "
-      aria-label="Increase quantity"
-    >
-      +
-    </button>
-  </div>
-
-  {/* Trash icon */}
-  <button
-    type="button"
-    onClick={() => removeFromCart(line.item.id)}
-    className="
-      w-9 h-9
-      flex items-center justify-center
-      border border-gray-300
-      rounded-full
-      text-gray-600
-      active:bg-gray-100
-      shrink-0
-      transition
-    "
-    aria-label={`Remove ${line.item.name}`}
-  >
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
-        fill="currentColor"
-      />
-    </svg>
-  </button>
-
-</div>
+                        {/* Trash icon */}
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(line.item.id)}
+                          className="
+                            w-9 h-9
+                            flex items-center justify-center
+                            border border-gray-300
+                            rounded-full
+                            text-gray-600
+                            active:bg-gray-100
+                            shrink-0
+                            transition
+                          "
+                          aria-label={`Remove ${line.item.name}`}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                              d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -690,9 +856,7 @@ export default function ProductGrid() {
                   <span className="font-bold">Grand Total</span>
                   <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Totals shown are estimates. Final total confirmed at pickup.
-                </p>
+                <p className="text-xs text-gray-500 mt-2">Totals shown are estimates. Final total confirmed at pickup.</p>
               </div>
             )}
 
