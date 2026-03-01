@@ -132,7 +132,7 @@ function QtyStepper({
   );
 }
 
-/** Draggable floating Reserve Order button */
+/** Draggable floating Cart button (snaps to edges) */
 function FloatingReserveButton({
   count,
   onClick
@@ -163,75 +163,79 @@ function FloatingReserveButton({
     moved: false
   });
 
+  const STORAGE_KEY = 'hss_moving_supplies_floating_btn_pos_v2';
+
+  function getButtonSize() {
+    const el = btnRef.current;
+    return {
+      w: el?.offsetWidth ?? 170,
+      h: el?.offsetHeight ?? 44
+    };
+  }
+
+  function clampToViewport(x: number, y: number) {
+    const { w, h } = getButtonSize();
+    const maxX = Math.max(8, window.innerWidth - w - 8);
+    const maxY = Math.max(8, window.innerHeight - h - 8);
+    return {
+      x: Math.min(Math.max(8, x), maxX),
+      y: Math.min(Math.max(8, y), maxY)
+    };
+  }
+
+  function snapToNearestEdge(x: number, y: number) {
+    const { w } = getButtonSize();
+    const maxX = Math.max(8, window.innerWidth - w - 8);
+    const mid = window.innerWidth / 2;
+
+    // snap left or right, keep Y clamped
+    const snappedX = x + w / 2 < mid ? 8 : maxX;
+    return clampToViewport(snappedX, y);
+  }
+
   // init position (restore from localStorage if present)
   useEffect(() => {
-    const key = 'hss_moving_supplies_floating_btn_pos_v1';
-
     const defaultPos = () => {
-      const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
-      const h = typeof window !== 'undefined' ? window.innerHeight : 800;
-      // start near bottom center
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      // start near bottom-right
       return {
-        x: Math.max(12, Math.round(w / 2 - 90)),
-        y: Math.max(12, Math.round(h - 140))
+        x: Math.max(8, Math.round(w - 210)),
+        y: Math.max(8, Math.round(h - 150))
       };
     };
 
     try {
-      const saved = localStorage.getItem(key);
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Number.isFinite(parsed?.x) && Number.isFinite(parsed?.y)) {
-          setPos({ x: parsed.x, y: parsed.y });
+          setPos(clampToViewport(parsed.x, parsed.y));
           return;
         }
       }
     } catch {}
 
     setPos(defaultPos());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // keep on-screen on resize
+  // keep on-screen on resize (and keep snapped behavior feeling consistent)
   useEffect(() => {
-    function clampToViewport(x: number, y: number) {
-      const el = btnRef.current;
-      const bw = el?.offsetWidth ?? 190;
-      const bh = el?.offsetHeight ?? 48;
-      const maxX = Math.max(8, window.innerWidth - bw - 8);
-      const maxY = Math.max(8, window.innerHeight - bh - 8);
-      return {
-        x: Math.min(Math.max(8, x), maxX),
-        y: Math.min(Math.max(8, y), maxY)
-      };
-    }
-
     function onResize() {
-      setPos((p) => clampToViewport(p.x, p.y));
+      setPos((p) => snapToNearestEdge(p.x, p.y));
     }
-
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // persist
   useEffect(() => {
-    const key = 'hss_moving_supplies_floating_btn_pos_v1';
     try {
-      localStorage.setItem(key, JSON.stringify(pos));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
     } catch {}
   }, [pos]);
-
-  function clampToViewport(x: number, y: number) {
-    const el = btnRef.current;
-    const bw = el?.offsetWidth ?? 190;
-    const bh = el?.offsetHeight ?? 48;
-    const maxX = Math.max(8, window.innerWidth - bw - 8);
-    const maxY = Math.max(8, window.innerHeight - bh - 8);
-    return {
-      x: Math.min(Math.max(8, x), maxX),
-      y: Math.min(Math.max(8, y), maxY)
-    };
-  }
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
@@ -261,8 +265,7 @@ function FloatingReserveButton({
       dragRef.current.moved = true;
     }
 
-    const next = clampToViewport(dragRef.current.originX + dx, dragRef.current.originY + dy);
-    setPos(next);
+    setPos(clampToViewport(dragRef.current.originX + dx, dragRef.current.originY + dy));
   }
 
   function endDrag(e: React.PointerEvent) {
@@ -272,8 +275,14 @@ function FloatingReserveButton({
     dragRef.current.active = false;
     dragRef.current.pointerId = null;
 
-    // treat as click if they didn't really drag
-    if (!dragRef.current.moved) onClick();
+    // click (tap) if they didn't really drag
+    if (!dragRef.current.moved) {
+      onClick();
+      return;
+    }
+
+    // snap if they dragged
+    setPos((p) => snapToNearestEdge(p.x, p.y));
   }
 
   return (
@@ -286,24 +295,42 @@ function FloatingReserveButton({
       onPointerCancel={endDrag}
       className="
         fixed z-[55]
-        bg-orange-600 text-white
-        px-6 py-3
+        text-white
+        px-4 py-3
         rounded-full font-semibold
-        hover:bg-orange-700
         shadow-xl
         active:scale-[0.98]
         transition
         select-none
+        flex items-center gap-2
       "
       style={{
         left: `${pos.x}px`,
         top: `${pos.y}px`,
+        backgroundColor: '#EC1516', // HSS red
         touchAction: 'none' // required for mobile dragging
       }}
-      aria-label={`Open reserve order. ${count} items.`}
+      aria-label={`Open cart. ${count} items.`}
       title="Drag to move • Tap to open"
     >
-      Reserve Order ({count})
+      {/* drag handle (visual cue) */}
+      <span
+        aria-hidden="true"
+        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/15"
+        title="Drag"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14">
+          <circle cx="4" cy="4" r="1" fill="white" />
+          <circle cx="10" cy="4" r="1" fill="white" />
+          <circle cx="4" cy="7" r="1" fill="white" />
+          <circle cx="10" cy="7" r="1" fill="white" />
+          <circle cx="4" cy="10" r="1" fill="white" />
+          <circle cx="10" cy="10" r="1" fill="white" />
+        </svg>
+      </span>
+
+      {/* label */}
+      <span className="whitespace-nowrap">Cart ({count})</span>
     </button>
   );
 }
