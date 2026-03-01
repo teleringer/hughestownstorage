@@ -588,6 +588,7 @@ export default function ProductGrid() {
   }
 
   function handlePrintReceipt(order: SubmittedOrder) {
+    const logoUrl = 'https://www.hughestownstorage.com/images/brand/hss-logo.png';
     const html = `
       <html>
         <head>
