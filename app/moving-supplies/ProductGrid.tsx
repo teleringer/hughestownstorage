@@ -82,12 +82,7 @@ function clampQty(qty: number) {
 
 function CartIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
         d="M6.5 6h14l-1.5 8.5a2 2 0 0 1-2 1.5H9.2a2 2 0 0 1-2-1.6L5.3 3.8A1.5 1.5 0 0 0 3.8 2.5H2.5"
         stroke="currentColor"
@@ -106,24 +101,14 @@ function CartIcon({ className = 'w-6 h-6' }: { className?: string }) {
 function PrinterIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M7 8V4h10v4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M7 8V4h10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path
         d="M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
       />
-      <path
-        d="M7 14h10v6H7v-6Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
+      <path d="M7 14h10v6H7v-6Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -588,7 +573,9 @@ export default function ProductGrid() {
   }
 
   function handlePrintReceipt(order: SubmittedOrder) {
-    const logoUrl = 'https://www.hughestownstorage.com/images/brand/hss-logo.png';
+    // Use the same URL you tested (no www)
+    const logoUrl = 'https://hughestownstorage.com/images/brand/hss-logo.png';
+
     const html = `
       <html>
         <head>
@@ -606,20 +593,57 @@ export default function ProductGrid() {
             .totals { margin-top: 12px; max-width: 360px; margin-left: auto; }
             .totals div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
             .bold { font-weight: 700; }
+
+            /* New print header layout */
+            .printHeader {
+              display: grid;
+              grid-template-columns: 1fr 260px;
+              gap: 16px;
+              align-items: start;
+            }
+            .logoBlock { text-align: right; }
+            .logoBlock img { max-width: 240px; height: auto; display: block; margin-left: auto; }
+            .contactGrid {
+              margin-top: 8px;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 0 24px;
+              font-size: 12px;
+              line-height: 1.4;
+            }
+            .contactLeft { text-align: left; }
+            .contactRight { text-align: right; }
           </style>
         </head>
         <body>
-          <h1>Moving Supplies Order</h1>
-          <div class="muted">Hughestown Self-Storage</div>
-          <div class="muted">Submitted: ${order.submittedAt}</div>
-          <div class="muted" style="margin-top:8px; line-height:1.4;">
-  Hughestown Self-Storage<br/>
-  133 New Street<br/>
-  Hughestown, PA 18640<br/>
-  (570) 362-6150<br/>
-  www.hughestownstorage.com<br/>
-  office@hughestownstorage.com
-</div>
+          <div class="printHeader">
+            <div>
+              <h1>Moving Supplies Order</h1>
+              <div class="muted"><span class="bold">Hughestown Self-Storage</span></div>
+              <div class="muted">Submitted: ${order.submittedAt}</div>
+
+              <!-- Two-column address/contact so website/email are RIGHT like you requested -->
+              <div class="contactGrid">
+                <div class="contactLeft">
+                  <div class="bold">Hughestown Self-Storage</div>
+                  <div>133 New Street</div>
+                  <div>Hughestown, PA 18640</div>
+                  <div>(570) 362-6150</div>
+                </div>
+
+                <div class="contactRight">
+                  <div>&nbsp;</div>
+                  <div>www.hughestownstorage.com</div>
+                  <div>office@hughestownstorage.com</div>
+                  <div>&nbsp;</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="logoBlock">
+              <img src="${logoUrl}" alt="Hughestown Self-Storage Logo" />
+            </div>
+          </div>
 
           <div class="box">
             <div class="bold">Customer</div>
@@ -666,7 +690,7 @@ export default function ProductGrid() {
 
           <div class="box">
             <div class="bold">Notes</div>
-            <div style="margin-top:6px;">${order.notes?.trim() ? order.notes.replace(/\n/g, '<br/>') : '—'}</div>
+            <div style="margin-top:6px;">${order.notes?.trim() ? order.notes.replace(/\\n/g, '<br/>') : '—'}</div>
           </div>
         </body>
       </html>
@@ -971,21 +995,21 @@ export default function ProductGrid() {
                 <div className="rounded-lg border bg-white p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-  <div className="text-lg font-bold">Order Summary</div>
+                      <div className="text-lg font-bold">Order Summary</div>
 
-  <div className="text-sm text-gray-700 font-semibold mt-1">
-    Hughestown Self-Storage Moving Supplies
-  </div>
+                      <div className="text-sm text-gray-700 font-semibold mt-1">
+                        Hughestown Self-Storage Moving Supplies
+                      </div>
 
-  <div className="text-xs text-gray-600 mt-2 space-y-0.5 leading-relaxed">
-    <div>Hughestown Self-Storage</div>
-    <div>133 New Street</div>
-    <div>Hughestown, PA 18640</div>
-    <div>(570) 362-6150</div>
-    <div>www.hughestownstorage.com</div>
-    <div>office@hughestownstorage.com</div>
-  </div>
-</div>
+                      <div className="text-xs text-gray-600 mt-2 space-y-0.5 leading-relaxed">
+                        <div>Hughestown Self-Storage</div>
+                        <div>133 New Street</div>
+                        <div>Hughestown, PA 18640</div>
+                        <div>(570) 362-6150</div>
+                        <div>www.hughestownstorage.com</div>
+                        <div>office@hughestownstorage.com</div>
+                      </div>
+                    </div>
 
                     <button
                       type="button"
