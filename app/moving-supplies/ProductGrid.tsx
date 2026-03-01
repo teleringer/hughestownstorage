@@ -244,7 +244,7 @@ export default function ProductGrid() {
       {
         id: '2-3-bedroom-kit',
         name: '2-3 Bedroom Kit',
-        price: '$169.99',
+        price: '$179.99',
         description:
           'Includes: 15 Small boxes, 10 Medium boxes, 5 Large boxes, 3 Rolls of tape, 2 Rolls bubble wrap, 1 Bundle packing paper, 1 Markers'
       },
@@ -482,7 +482,7 @@ export default function ProductGrid() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg p-6 text-center">
               <h4 className="text-lg font-semibold mb-4">Studio Apartment Kit</h4>
-              <div className="text-3xl font-bold text-orange-600 mb-4">$49.99</div>
+              <div className="text-3xl font-bold text-orange-600 mb-4">$69.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
                 <li>• 10 Small boxes</li>
                 <li>• 5 Medium boxes</li>
@@ -495,14 +495,14 @@ export default function ProductGrid() {
                 onClick={() => addToCart(kits[0])}
                 className="w-full mt-4 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
               >
-                Add Kit to Reserve Order →
+                Add Kit to Order →
               </button>
             </div>
 
             <div className="bg-white rounded-lg p-6 text-center border-2 border-orange-600">
               <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">Most Popular</div>
               <h4 className="text-lg font-semibold mb-4">2-3 Bedroom Kit</h4>
-              <div className="text-3xl font-bold text-orange-600 mb-4">$89.99</div>
+              <div className="text-3xl font-bold text-orange-600 mb-4">$179.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
                 <li>• 15 Small boxes</li>
                 <li>• 10 Medium boxes</li>
@@ -510,20 +510,20 @@ export default function ProductGrid() {
                 <li>• 3 Rolls of tape</li>
                 <li>• 2 Rolls bubble wrap</li>
                 <li>• 1 Bundle packing paper</li>
-                <li>• 2 Markers</li>
+                <li>• 1 Markers</li>
               </ul>
               <button
                 type="button"
                 onClick={() => addToCart(kits[1])}
                 className="w-full mt-4 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
               >
-                Add Kit to Reserve Order →
+                Add Kit to Order →
               </button>
             </div>
 
             <div className="bg-white rounded-lg p-6 text-center">
               <h4 className="text-lg font-semibold mb-4">4+ Bedroom Kit</h4>
-              <div className="text-3xl font-bold text-orange-600 mb-4">$149.99</div>
+              <div className="text-3xl font-bold text-orange-600 mb-4">$379.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
                 <li>• 20 Small boxes</li>
                 <li>• 15 Medium boxes</li>
@@ -533,14 +533,14 @@ export default function ProductGrid() {
                 <li>• 3 Rolls bubble wrap</li>
                 <li>• 2 Bundles packing paper</li>
                 <li>• 4 Moving blankets</li>
-                <li>• 3 Markers</li>
+                <li>• 2 Markers</li>
               </ul>
               <button
                 type="button"
                 onClick={() => addToCart(kits[2])}
                 className="w-full mt-4 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
               >
-                Add Kit to Reserve Order →
+                Add Kit to Order →
               </button>
             </div>
           </div>
