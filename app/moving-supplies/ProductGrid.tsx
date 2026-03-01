@@ -127,14 +127,16 @@ function CheckIcon({ className = 'w-5 h-5' }: { className?: string }) {
   );
 }
 
+function ChevronDownIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Draggable floating Cart button (snaps to edges) */
-function FloatingCartButton({
-  count,
-  onClick
-}: {
-  count: number;
-  onClick: () => void;
-}) {
+function FloatingCartButton({ count, onClick }: { count: number; onClick: () => void }) {
   const btnRef = useRef<HTMLButtonElement | null>(null);
 
   // position from top-left of viewport
@@ -514,6 +516,12 @@ export default function ProductGrid() {
   const taxCents = Math.round(subtotalCents * TAX_RATE);
   const grandTotalCents = subtotalCents + taxCents;
 
+  // NEW: scroll target for “Checkout” in the mobile bottom bar
+  const checkoutRef = useRef<HTMLDivElement | null>(null);
+  function scrollToCheckout() {
+    checkoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   // auto-hide toast
   useEffect(() => {
     if (!justAdded) return;
@@ -573,9 +581,9 @@ export default function ProductGrid() {
   }
 
   function handlePrintReceipt(order: SubmittedOrder) {
-  const logoUrl = 'https://www.hughestownstorage.com/images/brand/hss-logo.png';
+    const logoUrl = 'https://www.hughestownstorage.com/images/brand/hss-logo.png';
 
-  const html = `
+    const html = `
     <html>
       <head>
         <title>HSS Moving Supplies Order</title>
@@ -728,14 +736,14 @@ export default function ProductGrid() {
     </html>
   `;
 
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) return;
 
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-}
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+  }
 
   async function submitReservationOrder(e: FormEvent) {
     e.preventDefault();
@@ -987,12 +995,16 @@ export default function ProductGrid() {
           <div className="absolute inset-0 bg-black/60" onClick={closeModal} />
 
           {/* Make modal scrollable on mobile */}
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto">
+          <div
+            className={[
+              'relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto',
+              // Premium mobile bottom bar needs space so content isn’t hidden behind it
+              modalView === 'cart' ? 'pb-28 sm:pb-6' : ''
+            ].join(' ')}
+          >
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">
-                  {modalView === 'success' ? 'Order Submitted' : 'Your Cart'}
-                </h3>
+                <h3 className="text-2xl font-bold text-gray-800">{modalView === 'success' ? 'Order Submitted' : 'Your Cart'}</h3>
                 <p className="text-sm text-gray-600 mt-1">
                   {modalView === 'success'
                     ? 'You can print this summary for your records.'
@@ -1029,9 +1041,7 @@ export default function ProductGrid() {
                     <div>
                       <div className="text-lg font-bold">Order Summary</div>
 
-                      <div className="text-sm text-gray-700 font-semibold mt-1">
-                        Hughestown Self-Storage Moving Supplies
-                      </div>
+                      <div className="text-sm text-gray-700 font-semibold mt-1">Hughestown Self-Storage Moving Supplies</div>
 
                       <div className="text-xs text-gray-600 mt-2 space-y-0.5 leading-relaxed">
                         <div>Hughestown Self-Storage</div>
@@ -1063,9 +1073,7 @@ export default function ProductGrid() {
 
                     <div className="rounded-md bg-gray-50 p-3">
                       <div className="font-semibold">Notes</div>
-                      <div className="mt-1 whitespace-pre-wrap">
-                        {submittedOrder.notes?.trim() ? submittedOrder.notes : '—'}
-                      </div>
+                      <div className="mt-1 whitespace-pre-wrap">{submittedOrder.notes?.trim() ? submittedOrder.notes : '—'}</div>
                     </div>
                   </div>
 
@@ -1107,9 +1115,7 @@ export default function ProductGrid() {
                         <span className="font-bold">Grand Total</span>
                         <span className="font-bold">{centsToUsd(submittedOrder.grandTotalCents)}</span>
                       </div>
-                      <div className="text-xs text-gray-500 pt-2">
-                        Totals shown are estimates. Final total confirmed at pickup.
-                      </div>
+                      <div className="text-xs text-gray-500 pt-2">Totals shown are estimates. Final total confirmed at pickup.</div>
                     </div>
                   </div>
                 </div>
@@ -1243,11 +1249,12 @@ export default function ProductGrid() {
                       <span className="font-bold">Grand Total</span>
                       <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Totals shown are estimates. Final total confirmed at pickup.
-                    </p>
+                    <p className="text-xs text-gray-500 mt-2">Totals shown are estimates. Final total confirmed at pickup.</p>
                   </div>
                 )}
+
+                {/* Scroll target for Checkout button in mobile bottom bar */}
+                <div ref={checkoutRef} />
 
                 <form onSubmit={submitReservationOrder} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1331,6 +1338,67 @@ export default function ProductGrid() {
                     Submitting sends your moving supplies order to Hughestown Self-Storage for confirmation.
                   </p>
                 </form>
+
+                {/* ✅ PREMIUM MOBILE BOTTOM BAR (Cart view only) */}
+                {modalView === 'cart' && (
+                  <div className="sm:hidden sticky bottom-0 -mx-6 mt-6">
+                    {/* soft fade so it feels “app-like” */}
+                    <div className="pointer-events-none h-8 bg-gradient-to-t from-white to-white/0" />
+
+                    <div className="border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-xs text-gray-500">
+                            Cart • <span className="font-semibold text-gray-800">{cartCount}</span> items
+                          </div>
+                          <div className="text-sm font-bold text-gray-900 truncate">
+                            Est. Total: {centsToUsd(grandTotalCents)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={closeModal}
+                            className="
+                              inline-flex items-center justify-center
+                              rounded-full border border-gray-300
+                              px-4 py-2.5
+                              text-sm font-semibold text-gray-800
+                              active:bg-gray-100
+                              transition
+                            "
+                            aria-label="Continue shopping"
+                          >
+                            Add More
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={scrollToCheckout}
+                            className="
+                              inline-flex items-center justify-center gap-2
+                              rounded-full
+                              px-4 py-2.5
+                              text-sm font-semibold text-white
+                              shadow-md
+                              active:scale-[0.99]
+                              transition
+                            "
+                            style={{
+                              background:
+                                'linear-gradient(135deg, #EC1516 0%, #ff3b30 55%, #ff6a5f 100%)'
+                            }}
+                            aria-label="Go to checkout form"
+                          >
+                            Checkout
+                            <ChevronDownIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
