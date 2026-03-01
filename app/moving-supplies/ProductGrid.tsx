@@ -17,6 +17,7 @@ type CartLine = {
 };
 
 type SubmittedOrder = {
+  orderId: string;
   submittedAt: string;
   name: string;
   phone: string;
@@ -153,17 +154,15 @@ function FloatingCartButton({ count, onClick }: { count: number; onClick: () => 
     originX: number;
     originY: number;
     moved: boolean;
-  }>(
-    {
-      active: false,
-      pointerId: null,
-      startX: 0,
-      startY: 0,
-      originX: 0,
-      originY: 0,
-      moved: false
-    }
-  );
+  }>({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    originX: 0,
+    originY: 0,
+    moved: false
+  });
 
   const STORAGE_KEY = 'hss_moving_supplies_floating_btn_pos_v3';
 
@@ -361,6 +360,25 @@ function FloatingCartButton({ count, onClick }: { count: number; onClick: () => 
   );
 }
 
+/** No DB needed — generate a “good enough” unique ID per order on the client. */
+function generateOrderId() {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const rand = Math.floor(Math.random() * 1_000_000)
+    .toString()
+    .padStart(6, '0');
+  // Example: HSS-260301-482913
+  return `HSS-${yy}${mm}${dd}-${rand}`;
+}
+
+function isValidEmail(s: string) {
+  const v = (s || '').trim();
+  // simple/robust enough for checkout
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 export default function ProductGrid() {
   const products: Item[] = [
     {
@@ -467,8 +485,7 @@ export default function ProductGrid() {
         id: 'studio-apartment-kit',
         name: 'Studio Apartment Kit',
         price: '$69.99',
-        description:
-          'Includes: 10 Small boxes, 5 Medium boxes, 2 Rolls of tape, 1 Roll bubble wrap, 1 Marker'
+        description: 'Includes: 10 Small boxes, 5 Medium boxes, 2 Rolls of tape, 1 Roll bubble wrap, 1 Marker'
       },
       {
         id: '2-3-bedroom-kit',
@@ -507,6 +524,19 @@ export default function ProductGrid() {
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Validation (inline)
+  const [touched, setTouched] = useState<{ name: boolean; phone: boolean; email: boolean }>({
+    name: false,
+    phone: false,
+    email: false
+  });
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  // Refs for focus
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const phoneRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+
   // Submit state
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -520,8 +550,52 @@ export default function ProductGrid() {
 
   // NEW: scroll target for “Checkout” in the mobile bottom bar
   const checkoutRef = useRef<HTMLDivElement | null>(null);
-  function scrollToCheckout() {
+
+  // Checkout “flash” highlight (feels like a real checkout jump)
+  const [checkoutFlash, setCheckoutFlash] = useState(false);
+
+  function fieldErrors() {
+    const phoneDigits = digitsOnly(phone);
+    return {
+      name: fullName.trim() ? '' : 'Full name is required.',
+      phone: phoneDigits.length === 10 ? '' : 'Enter a valid 10-digit US phone number.',
+      email: email.trim() && isValidEmail(email) ? '' : 'Enter a valid email address.'
+    };
+  }
+
+  const errs = fieldErrors();
+  const isFormValid = !errs.name && !errs.phone && !errs.email;
+
+  function focusFirstInvalid() {
+    const e = fieldErrors();
+    if (e.name) {
+      nameRef.current?.focus();
+      return;
+    }
+    if (e.phone) {
+      phoneRef.current?.focus();
+      return;
+    }
+    if (e.email) {
+      emailRef.current?.focus();
+      return;
+    }
+  }
+
+  function scrollToCheckoutAndEmphasize() {
     checkoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setCheckoutFlash(true);
+    window.setTimeout(() => setCheckoutFlash(false), 1100);
+
+    // Give the scroll a moment, then focus
+    window.setTimeout(() => focusFirstInvalid(), 450);
+  }
+
+  function handleCheckoutTap() {
+    // Show inline errors and jump/focus
+    setSubmitAttempted(true);
+    setTouched({ name: true, phone: true, email: true });
+    scrollToCheckoutAndEmphasize();
   }
 
   // auto-hide toast
@@ -621,10 +695,6 @@ export default function ProductGrid() {
             display:block;
             margin-left:auto;
           }
-          .addr {
-            margin-top:8px;
-            line-height:1.4;
-          }
           .addr-grid {
             display:flex;
             justify-content:space-between;
@@ -633,6 +703,7 @@ export default function ProductGrid() {
           }
           .addr-left { line-height:1.4; }
           .addr-right { text-align:right; line-height:1.4; }
+          .orderid { margin-top:6px; font-size:12px; }
         </style>
       </head>
       <body>
@@ -641,21 +712,22 @@ export default function ProductGrid() {
             <h1>Moving Supplies Order</h1>
             <div class="muted"><span class="bold">Hughestown Self-Storage</span></div>
             <div class="muted">Submitted: ${order.submittedAt}</div>
+            <div class="orderid muted"><span class="bold">Order ID:</span> ${order.orderId}</div>
 
-<div class="addr-grid">
-  <div class="addr-left muted">
-    <span class="bold">Hughestown Self-Storage</span><br/>
-    133 New Street<br/>
-    Hughestown, PA 18640<br/>
-    (570) 362-6150
-  </div>
-  <div class="addr-right muted">
-    <br/>
-    <br/>
-    www.hughestownstorage.com<br/>
-    office@hughestownstorage.com
-  </div>
-</div>
+            <div class="addr-grid">
+              <div class="addr-left muted">
+                <span class="bold">Hughestown Self-Storage</span><br/>
+                133 New Street<br/>
+                Hughestown, PA 18640<br/>
+                (570) 362-6150
+              </div>
+              <div class="addr-right muted">
+                <br/>
+                <br/>
+                www.hughestownstorage.com<br/>
+                office@hughestownstorage.com
+              </div>
+            </div>
           </div>
 
           <div class="header-right">
@@ -720,17 +792,14 @@ export default function ProductGrid() {
             function doPrint() {
               if (printed) return;
               printed = true;
-              // Slight delay helps Chrome finish layout before opening print dialog
               setTimeout(() => window.print(), 150);
             }
 
-            // If the image loads, print.
             if (img) {
               img.addEventListener('load', doPrint);
-              img.addEventListener('error', doPrint); // still print even if logo fails
+              img.addEventListener('error', doPrint);
             }
 
-            // Fallback: print even if load event doesn't fire for some reason
             setTimeout(doPrint, 1200);
           })();
         </script>
@@ -756,13 +825,18 @@ export default function ProductGrid() {
       return;
     }
 
-    const phoneDigits = digitsOnly(phone);
+    setSubmitAttempted(true);
+    setTouched({ name: true, phone: true, email: true });
 
-    if (!fullName.trim() || phoneDigits.length !== 10 || !email.trim()) {
+    const e2 = fieldErrors();
+    if (e2.name || e2.phone || e2.email) {
       setStatus('error');
-      setStatusMsg('Please enter your full name, a 10-digit phone number, and your email.');
+      setStatusMsg('Please correct the highlighted fields below.');
+      scrollToCheckoutAndEmphasize();
       return;
     }
+
+    const phoneDigits = digitsOnly(phone);
 
     setSubmitting(true);
     setStatus('idle');
@@ -773,11 +847,13 @@ export default function ProductGrid() {
       return `- ${l.qty} × ${l.item.name}${sizePart} @ ${l.item.price}`;
     });
 
+    const orderId = generateOrderId();
+
     const payload = {
       name: fullName.trim(),
       phone: formatUsPhone(phoneDigits),
       email: email.trim(),
-      subject: `📦 HSS Moving Supplies Order (${cartCount} items) – ${fullName.trim()}`,
+      subject: `📦 HSS Moving Supplies Order ${orderId} (${cartCount} items) – ${fullName.trim()}`,
       totals: {
         subtotalCents,
         taxRate: TAX_RATE,
@@ -786,6 +862,7 @@ export default function ProductGrid() {
       },
       message: [
         `MOVING SUPPLIES ORDER`,
+        `Order ID: ${orderId}`,
         ``,
         `Items:`,
         ...lines,
@@ -798,7 +875,9 @@ export default function ProductGrid() {
         `---`,
         `Customer: ${fullName.trim()}`,
         `Phone: ${formatUsPhone(phoneDigits)}`,
-        `Email: ${email.trim()}`
+        `Email: ${email.trim()}`,
+        ``,
+        `Reserve now, pay at pickup.`
       ]
         .filter(Boolean)
         .join('\n')
@@ -826,6 +905,7 @@ export default function ProductGrid() {
       // Build receipt snapshot BEFORE clearing cart
       const submittedAt = new Date().toLocaleString('en-US');
       const receipt: SubmittedOrder = {
+        orderId,
         submittedAt,
         name: fullName.trim(),
         phone: formatUsPhone(phoneDigits),
@@ -862,10 +942,14 @@ export default function ProductGrid() {
     }
   }
 
+  const showNameErr = (touched.name || submitAttempted) && !!errs.name;
+  const showPhoneErr = (touched.phone || submitAttempted) && !!errs.phone;
+  const showEmailErr = (touched.email || submitAttempted) && !!errs.email;
+
   return (
     <section className="py-16 bg-white" data-product-shop>
-      {/* ✅ Floating draggable Cart icon button */}
-      {cartCount > 0 && <FloatingCartButton count={cartCount} onClick={openOrderModal} />}
+      {/* ✅ Floating draggable Cart icon button (auto-hides while modal is open) */}
+      {cartCount > 0 && !isOpen && <FloatingCartButton count={cartCount} onClick={openOrderModal} />}
 
       {/* Toast feedback */}
       {justAdded && (
@@ -942,9 +1026,7 @@ export default function ProductGrid() {
             </div>
 
             <div className="bg-white rounded-lg p-6 text-center border-2 border-orange-600">
-              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">
-                Most Popular
-              </div>
+              <div className="bg-orange-600 text-white px-4 py-1 rounded-full text-sm mb-4 inline-block">Most Popular</div>
               <h4 className="text-lg font-semibold mb-4">2-3 Bedroom Kit</h4>
               <div className="text-3xl font-bold text-orange-600 mb-4">$179.99</div>
               <ul className="text-sm text-gray-600 text-left space-y-1">
@@ -999,13 +1081,9 @@ export default function ProductGrid() {
           {/* Make modal scrollable on mobile */}
           <div
             className={[
-              // 🔥 CHANGED: mobile fills almost the whole screen; desktop stays nice
-              'relative w-full bg-white shadow-xl overflow-y-auto',
-              'sm:max-w-2xl sm:rounded-xl sm:p-6 sm:max-h-[85vh]',
-              // Mobile sizing: full-width/height with a little top “peek” space
-              'h-[88vh] max-h-[88vh] rounded-t-xl p-4',
-              // Reserve space for the thin black bottom bar (cart view only)
-              modalView === 'cart' ? 'pb-16 sm:pb-6' : ''
+              'relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto',
+              // Mobile bottom bar needs space so content isn’t hidden behind it
+              modalView === 'cart' ? 'pb-24 sm:pb-6' : ''
             ].join(' ')}
           >
             <div className="flex items-start justify-between gap-4 mb-4">
@@ -1039,6 +1117,10 @@ export default function ProductGrid() {
                       Thanks — we received your moving supplies order. We'll contact you shortly to confirm availability.
                     </div>
                     <div className="mt-1 opacity-80">Submitted: {submittedOrder.submittedAt}</div>
+                    <div className="mt-1 opacity-80">
+                      Order ID: <span className="font-semibold">{submittedOrder.orderId}</span>
+                    </div>
+                    <div className="mt-1 opacity-80">Reserve now, pay at pickup.</div>
                   </div>
                 </div>
 
@@ -1122,6 +1204,7 @@ export default function ProductGrid() {
                         <span className="font-bold">{centsToUsd(submittedOrder.grandTotalCents)}</span>
                       </div>
                       <div className="text-xs text-gray-500 pt-2">Totals shown are estimates. Final total confirmed at pickup.</div>
+                      <div className="text-xs text-gray-700 pt-1 font-semibold">Reserve now, pay at pickup.</div>
                     </div>
                   </div>
                 </div>
@@ -1256,147 +1339,161 @@ export default function ProductGrid() {
                       <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">Totals shown are estimates. Final total confirmed at pickup.</p>
+                    <p className="text-xs text-gray-800 mt-2 font-semibold">Reserve now, pay at pickup.</p>
                   </div>
                 )}
 
                 {/* Scroll target for Checkout button in mobile bottom bar */}
                 <div ref={checkoutRef} />
 
-                <form onSubmit={submitReservationOrder} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                      <input
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Your name"
-                        autoComplete="name"
-                      />
+                {/* Checkout area (gets highlighted when they tap Checkout in the bottom bar) */}
+                <div
+                  className={[
+                    'rounded-xl transition-all',
+                    checkoutFlash ? 'ring-2 ring-[#E7B723] shadow-[0_0_0_4px_rgba(231,183,35,0.20)]' : ''
+                  ].join(' ')}
+                >
+                  <form onSubmit={submitReservationOrder} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                        <input
+                          ref={nameRef}
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                          className={[
+                            'w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2',
+                            showNameErr ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-orange-500'
+                          ].join(' ')}
+                          placeholder="Your name"
+                          autoComplete="name"
+                        />
+                        {showNameErr && <p className="text-xs text-red-700 mt-1">{errs.name}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                        <input
+                          ref={phoneRef}
+                          value={phone}
+                          onChange={(e) => handlePhoneChange(e.target.value)}
+                          onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                          inputMode="numeric"
+                          autoComplete="tel"
+                          maxLength={14}
+                          className={[
+                            'w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2',
+                            showPhoneErr ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-orange-500'
+                          ].join(' ')}
+                          placeholder="(570) 456-8765"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
+                        {showPhoneErr && <p className="text-xs text-red-700 mt-1">{errs.phone}</p>}
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
                       <input
-                        value={phone}
-                        onChange={(e) => handlePhoneChange(e.target.value)}
-                        inputMode="numeric"
-                        autoComplete="tel"
-                        maxLength={14}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="(570) 456-8765"
+                        ref={emailRef}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                        className={[
+                          'w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2',
+                          showEmailErr ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-orange-500'
+                        ].join(' ')}
+                        placeholder="you@example.com"
+                        autoComplete="email"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
+                      {showEmailErr && <p className="text-xs text-red-700 mt-1">{errs.email}</p>}
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                    <input
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="Pickup date/time preference, special requests, etc."
-                    />
-                  </div>
-
-                  {status !== 'idle' && (
-                    <div
-                      className={`text-sm rounded-lg px-3 py-2 ${
-                        status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                      }`}
-                    >
-                      {statusMsg}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        rows={3}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="Pickup preference, special requests, etc."
+                      />
                     </div>
-                  )}
 
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
-                      disabled={submitting}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
-                      disabled={submitting || cart.length === 0}
-                    >
-                      {submitting ? 'Sending...' : 'Submit Order'}
-                    </button>
-                  </div>
+                    <div className="text-xs text-gray-800 font-semibold">Reserve now, pay at pickup.</div>
 
-                  <p className="text-xs text-gray-500 pt-1">
-                    Submitting sends your moving supplies order to Hughestown Self-Storage for confirmation.
-                  </p>
-                </form>
+                    {status !== 'idle' && (
+                      <div
+                        className={`text-sm rounded-lg px-3 py-2 ${
+                          status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                        }`}
+                      >
+                        {statusMsg}
+                      </div>
+                    )}
 
-                {/* ✅ THIN BLACK MOBILE ACTION BAR (Cart view only) */}
-                {modalView === 'cart' && (
-                  <div className="sm:hidden sticky bottom-0 -mx-4 mt-6">
-                    <div className="bg-black px-3 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.25)]">
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
+                        disabled={submitting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
+                        disabled={submitting || cart.length === 0 || !isFormValid}
+                        aria-disabled={submitting || cart.length === 0 || !isFormValid}
+                      >
+                        {submitting ? 'Sending...' : 'Submit Order'}
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-gray-500 pt-1">
+                      Submitting sends your moving supplies order to Hughestown Self-Storage for confirmation.
+                    </p>
+                  </form>
+                </div>
+
+                {/* ✅ PREMIUM MOBILE BOTTOM BAR (Cart view only) */}
+                {modalView === 'cart' && cartCount > 0 && (
+                  <div className="sm:hidden sticky bottom-0 -mx-6 mt-6">
+                    {/* soft fade so it feels “app-like” */}
+                    <div className="pointer-events-none h-6 bg-gradient-to-t from-white to-white/0" />
+
+                    <div className="border-t border-black bg-black px-3 py-2">
                       <div className="flex items-center justify-between gap-2">
-                        {/* Left: cart count */}
-                        <div className="text-[11px] text-white/90 whitespace-nowrap">
-                          Cart{' '}
-                          <span className="font-semibold text-white">{cartCount}</span>{' '}
-                          {cartCount === 1 ? 'item' : 'items'}
+                        {/* Left: Cart count + total */}
+                        <div className="text-[12px] text-white font-semibold truncate">
+                          Cart {cartCount} • {centsToUsd(grandTotalCents)}
                         </div>
 
-                        {/* Middle: Add More */}
-                        <button
-                          type="button"
-                          onClick={closeModal}
-                          className="
-                            inline-flex items-center justify-center
-                            rounded-full
-                            bg-[#E7B723]
-                            text-black
-                            px-3 py-1.5
-                            text-xs font-semibold
-                            active:scale-[0.99]
-                            transition
-                            whitespace-nowrap
-                          "
-                          aria-label="Add more items"
-                        >
-                          + Add More
-                        </button>
+                        {/* Right: Buttons */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={closeModal}
+                            className="inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[12px] font-bold"
+                            style={{ backgroundColor: '#E7B723', color: '#111' }}
+                            aria-label="Continue shopping"
+                          >
+                            + Add More
+                          </button>
 
-                        {/* Right: Checkout */}
-                        <button
-                          type="button"
-                          onClick={scrollToCheckout}
-                          className="
-                            inline-flex items-center justify-center gap-1
-                            rounded-full
-                            bg-[#E7B723]
-                            text-black
-                            px-3 py-1.5
-                            text-xs font-semibold
-                            active:scale-[0.99]
-                            transition
-                            whitespace-nowrap
-                          "
-                          aria-label="Go to checkout form"
-                        >
-                          Checkout
-                          <ChevronDownIcon className="w-4 h-4" />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={handleCheckoutTap}
+                            className="inline-flex items-center justify-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-bold"
+                            style={{ backgroundColor: '#E7B723', color: '#111' }}
+                            aria-label="Go to checkout form"
+                          >
+                            Checkout
+                            <ChevronDownIcon className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
