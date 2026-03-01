@@ -573,137 +573,167 @@ export default function ProductGrid() {
   }
 
   function handlePrintReceipt(order: SubmittedOrder) {
-    // Use the same URL you tested (no www)
-    const logoUrl = 'https://hughestownstorage.com/images/brand/hss-logo.png';
+  const logoUrl = 'https://www.hughestownstorage.com/images/brand/hss-logo.png';
 
-    const html = `
-      <html>
-        <head>
-          <title>HSS Moving Supplies Order</title>
-          <meta charset="utf-8" />
-          <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
-            h1 { margin: 0 0 6px; font-size: 20px; }
-            .muted { color: #555; font-size: 12px; }
-            .box { border: 1px solid #ddd; border-radius: 10px; padding: 14px; margin-top: 14px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
-            th { background: #f5f5f5; text-align: left; }
-            .right { text-align: right; }
-            .totals { margin-top: 12px; max-width: 360px; margin-left: auto; }
-            .totals div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
-            .bold { font-weight: 700; }
+  const html = `
+    <html>
+      <head>
+        <title>HSS Moving Supplies Order</title>
+        <meta charset="utf-8" />
+        <style>
+          @page { margin: 18mm; }
+          body { font-family: Arial, sans-serif; color:#111; }
+          h1 { margin: 0 0 6px; font-size: 20px; }
+          .muted { color:#555; font-size:12px; }
+          .box { border:1px solid #ddd; border-radius:10px; padding:14px; margin-top:14px; }
+          table { width:100%; border-collapse:collapse; margin-top:12px; }
+          th, td { border:1px solid #ddd; padding:8px; font-size:12px; }
+          th { background:#f5f5f5; text-align:left; }
+          .right { text-align:right; }
+          .totals { margin-top:12px; max-width:360px; margin-left:auto; }
+          .totals div { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; }
+          .bold { font-weight:700; }
 
-            /* New print header layout */
-            .printHeader {
-              display: grid;
-              grid-template-columns: 1fr 260px;
-              gap: 16px;
-              align-items: start;
+          /* Header layout */
+          .header {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:16px;
+          }
+          .header-right {
+            text-align:right;
+            min-width:260px;
+          }
+          .logo {
+            max-width:260px;
+            height:auto;
+            display:block;
+            margin-left:auto;
+          }
+          .addr {
+            margin-top:8px;
+            line-height:1.4;
+          }
+          .addr-grid {
+            display:flex;
+            justify-content:space-between;
+            gap:24px;
+            margin-top:8px;
+          }
+          .addr-left { line-height:1.4; }
+          .addr-right { text-align:right; line-height:1.4; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-left">
+            <h1>Moving Supplies Order</h1>
+            <div class="muted"><span class="bold">Hughestown Self-Storage</span></div>
+            <div class="muted">Submitted: ${order.submittedAt}</div>
+
+            <div class="addr-grid">
+              <div class="addr-left muted">
+                <span class="bold">Hughestown Self-Storage</span><br/>
+                133 New Street<br/>
+                Hughestown, PA 18640<br/>
+                (570) 362-6150
+              </div>
+              <div class="addr-right muted">
+                www.hughestownstorage.com<br/>
+                office@hughestownstorage.com
+              </div>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <img class="logo" id="hssLogo" src="${logoUrl}?v=${Date.now()}" crossorigin="anonymous" alt="Hughestown Self-Storage" />
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="bold">Customer</div>
+          <div style="margin-top:6px;">${order.name}</div>
+          <div>${order.phone}</div>
+          <div>${order.email}</div>
+        </div>
+
+        <div class="box">
+          <div class="bold">Items</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th class="right">Qty</th>
+                <th class="right">Line Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items
+                .map(
+                  (i) => `
+                    <tr>
+                      <td>${i.name}${i.size ? ` <span class="muted">(${i.size})</span>` : ''}</td>
+                      <td class="right">${i.qty}</td>
+                      <td class="right">$${(i.lineTotalCents / 100).toFixed(2)}</td>
+                    </tr>
+                  `
+                )
+                .join('')}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div><span>Subtotal</span><span>$${(order.subtotalCents / 100).toFixed(2)}</span></div>
+            <div><span>PA Sales Tax (6%)</span><span>$${(order.taxCents / 100).toFixed(2)}</span></div>
+            <div class="bold" style="border-top:1px solid #ddd; margin-top:8px; padding-top:8px;">
+              <span>Grand Total</span><span>$${(order.grandTotalCents / 100).toFixed(2)}</span>
+            </div>
+            <div class="muted" style="margin-top:8px;">
+              Totals shown are estimates. Final total confirmed at pickup.
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="bold">Notes</div>
+          <div style="margin-top:6px;">${order.notes?.trim() ? order.notes.replace(/\n/g, '<br/>') : '—'}</div>
+        </div>
+
+        <script>
+          (function() {
+            const img = document.getElementById('hssLogo');
+            let printed = false;
+
+            function doPrint() {
+              if (printed) return;
+              printed = true;
+              // Slight delay helps Chrome finish layout before opening print dialog
+              setTimeout(() => window.print(), 150);
             }
-            .logoBlock { text-align: right; }
-            .logoBlock img { max-width: 240px; height: auto; display: block; margin-left: auto; }
-            .contactGrid {
-              margin-top: 8px;
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 0 24px;
-              font-size: 12px;
-              line-height: 1.4;
+
+            // If the image loads, print.
+            if (img) {
+              img.addEventListener('load', doPrint);
+              img.addEventListener('error', doPrint); // still print even if logo fails
             }
-            .contactLeft { text-align: left; }
-            .contactRight { text-align: right; }
-          </style>
-        </head>
-        <body>
-          <div class="printHeader">
-            <div>
-              <h1>Moving Supplies Order</h1>
-              <div class="muted"><span class="bold">Hughestown Self-Storage</span></div>
-              <div class="muted">Submitted: ${order.submittedAt}</div>
 
-              <!-- Two-column address/contact so website/email are RIGHT like you requested -->
-              <div class="contactGrid">
-                <div class="contactLeft">
-                  <div class="bold">Hughestown Self-Storage</div>
-                  <div>133 New Street</div>
-                  <div>Hughestown, PA 18640</div>
-                  <div>(570) 362-6150</div>
-                </div>
+            // Fallback: print even if load event doesn't fire for some reason
+            setTimeout(doPrint, 1200);
+          })();
+        </script>
+      </body>
+    </html>
+  `;
 
-                <div class="contactRight">
-                  <div>&nbsp;</div>
-                  <div>www.hughestownstorage.com</div>
-                  <div>office@hughestownstorage.com</div>
-                  <div>&nbsp;</div>
-                </div>
-              </div>
-            </div>
+  const w = window.open('', '_blank', 'width=900,height=700');
+  if (!w) return;
 
-            <div class="logoBlock">
-              <img src="${logoUrl}" alt="Hughestown Self-Storage Logo" />
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="bold">Customer</div>
-            <div style="margin-top:6px;">${order.name}</div>
-            <div>${order.phone}</div>
-            <div>${order.email}</div>
-          </div>
-
-          <div class="box">
-            <div class="bold">Items</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th class="right">Qty</th>
-                  <th class="right">Line Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${order.items
-                  .map(
-                    (i) => `
-                  <tr>
-                    <td>${i.name}${i.size ? ` <span class="muted">(${i.size})</span>` : ''}</td>
-                    <td class="right">${i.qty}</td>
-                    <td class="right">$${(i.lineTotalCents / 100).toFixed(2)}</td>
-                  </tr>`
-                  )
-                  .join('')}
-              </tbody>
-            </table>
-
-            <div class="totals">
-              <div><span>Subtotal</span><span>$${(order.subtotalCents / 100).toFixed(2)}</span></div>
-              <div><span>PA Sales Tax (6%)</span><span>$${(order.taxCents / 100).toFixed(2)}</span></div>
-              <div class="bold" style="border-top:1px solid #ddd; margin-top:8px; padding-top:8px;">
-                <span>Grand Total</span><span>$${(order.grandTotalCents / 100).toFixed(2)}</span>
-              </div>
-              <div class="muted" style="margin-top:8px;">
-                Totals shown are estimates. Final total confirmed at pickup.
-              </div>
-            </div>
-          </div>
-
-          <div class="box">
-            <div class="bold">Notes</div>
-            <div style="margin-top:6px;">${order.notes?.trim() ? order.notes.replace(/\\n/g, '<br/>') : '—'}</div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    const w = window.open('', '_blank', 'width=900,height=700');
-    if (!w) return;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    w.print();
-  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+}
 
   async function submitReservationOrder(e: FormEvent) {
     e.preventDefault();
