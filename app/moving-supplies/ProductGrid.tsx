@@ -155,6 +155,9 @@ function FloatingCartButton({
   // position from top-left of viewport
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // Track which edge we're docked to so we can place the badge inward
+  const [dock, setDock] = useState<'left' | 'right'>('right');
+
   const dragRef = useRef<{
     active: boolean;
     pointerId: number | null;
@@ -193,14 +196,25 @@ function FloatingCartButton({
     };
   }
 
+  function computeDock(x: number) {
+    const { w } = getButtonSize();
+    const maxX = Math.max(8, window.innerWidth - w - 8);
+    // If we're within 12px of maxX, treat as docked right
+    return Math.abs(x - maxX) <= 12 ? 'right' : 'left';
+  }
+
   function snapToNearestEdge(x: number, y: number) {
     const { w } = getButtonSize();
     const maxX = Math.max(8, window.innerWidth - w - 8);
     const mid = window.innerWidth / 2;
 
-    // snap left or right, keep Y clamped
     const snappedX = x + w / 2 < mid ? 8 : maxX;
-    return clampToViewport(snappedX, y);
+    const next = clampToViewport(snappedX, y);
+
+    // Update dock based on final snapped position
+    setDock(computeDock(next.x));
+
+    return next;
   }
 
   // init position (restore from localStorage if present)
@@ -208,7 +222,6 @@ function FloatingCartButton({
     const defaultPos = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      // start near bottom-right
       return {
         x: Math.max(8, Math.round(w - 90)),
         y: Math.max(8, Math.round(h - 160))
@@ -220,13 +233,18 @@ function FloatingCartButton({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Number.isFinite(parsed?.x) && Number.isFinite(parsed?.y)) {
-          setPos(clampToViewport(parsed.x, parsed.y));
+          const clamped = clampToViewport(parsed.x, parsed.y);
+          setPos(clamped);
+          setDock(computeDock(clamped.x));
           return;
         }
       }
     } catch {}
 
-    setPos(defaultPos());
+    const d = defaultPos();
+    const clamped = clampToViewport(d.x, d.y);
+    setPos(clamped);
+    setDock(computeDock(clamped.x));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -275,7 +293,10 @@ function FloatingCartButton({
       dragRef.current.moved = true;
     }
 
-    setPos(clampToViewport(dragRef.current.originX + dx, dragRef.current.originY + dy));
+    const next = clampToViewport(dragRef.current.originX + dx, dragRef.current.originY + dy);
+    setPos(next);
+    // While dragging, continuously update dock so the badge stays visible near edges
+    setDock(computeDock(next.x));
   }
 
   function endDrag(e: React.PointerEvent) {
@@ -294,6 +315,11 @@ function FloatingCartButton({
     // snap if they dragged
     setPos((p) => snapToNearestEdge(p.x, p.y));
   }
+
+  const badgeClass =
+    dock === 'right'
+      ? 'absolute -top-2 -left-2 min-w-[22px] h-[22px] px-1 rounded-full bg-white text-[#EC1516] text-xs font-bold flex items-center justify-center shadow'
+      : 'absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full bg-white text-[#EC1516] text-xs font-bold flex items-center justify-center shadow';
 
   return (
     <button
@@ -315,9 +341,9 @@ function FloatingCartButton({
         top: `${pos.y}px`,
         width: 60,
         height: 60,
-        backgroundColor: '#EC1516', // HSS red
+        backgroundColor: '#EC1516',
         color: '#fff',
-        touchAction: 'none' // required for mobile dragging
+        touchAction: 'none'
       }}
       aria-label={`Open cart. ${count} items.`}
       title="Drag to move • Tap to open"
@@ -340,12 +366,8 @@ function FloatingCartButton({
 
       <CartIcon className="w-7 h-7" />
 
-      {/* count badge */}
-      {count > 0 && (
-        <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full bg-white text-[#EC1516] text-xs font-bold flex items-center justify-center shadow">
-          {count}
-        </span>
-      )}
+      {/* count badge (always placed inward so it never clips) */}
+      {count > 0 && <span className={badgeClass}>{count}</span>}
     </button>
   );
 }
