@@ -8,7 +8,7 @@ export default function SizeComparison() {
       sqft: "100 sq ft",
       description: "Half of a one-car garage - Drive up access",
       items: ["One bedroom apartment", "Large appliances", "Office furniture", "Business inventory"],
-      image: "https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/c5b65974fb6f8a41572177b56b9b39fe.png",
+      image: "/images/services.png",
       cashPrice: "$120",
       cardPrice: "$124.79",
       link: "https://hughestownstorage.ccstorage.com/rentals/new?location_id=loc_b4455999eed8b6afbdd82c48680ffb0c&storage_unit_type_id=sut_7c53b8362be063a587c2a87ee9a10a0b"

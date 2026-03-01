@@ -13,7 +13,7 @@ export default function Footer() {
             <div className="mb-6 flex justify-center md:justify-start">
               <Link href="/" aria-label="Back to home">
                 <img
-                  src="https://static.readdy.ai/image/34eddc7177ae71b8c76003a700ee36ff/fcac0f32a53a13b7de48353d8bb78261.png"
+                  src="/images/footer-logo.png"
                   alt="Hughestown Self-Storage"
                   className="h-16 object-contain cursor-pointer"
                 />
