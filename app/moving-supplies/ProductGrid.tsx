@@ -16,6 +16,25 @@ type CartLine = {
   qty: number;
 };
 
+type SubmittedOrder = {
+  submittedAt: string;
+  name: string;
+  phone: string;
+  email: string;
+  notes: string;
+  items: Array<{
+    id: string;
+    name: string;
+    size?: string;
+    price: string;
+    qty: number;
+    lineTotalCents: number;
+  }>;
+  subtotalCents: number;
+  taxCents: number;
+  grandTotalCents: number;
+};
+
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -61,79 +80,70 @@ function clampQty(qty: number) {
   return Math.max(1, Math.min(999, Math.trunc(qty)));
 }
 
-function QtyStepper({
-  value,
-  onChange
-}: {
-  value: number;
-  onChange: (next: number) => void;
-}) {
-  const v = clampQty(value);
-
+function CartIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
-    <div
-      className="inline-flex shrink-0 flex-nowrap items-stretch rounded-xl border border-gray-300 bg-white shadow-sm overflow-hidden"
-      role="group"
-      aria-label="Quantity selector"
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
     >
-      <button
-        type="button"
-        onClick={() => onChange(clampQty(v - 1))}
-        disabled={v <= 1}
-        className="
-          flex-none
-          w-12 h-11 sm:w-10 sm:h-10
-          grid place-items-center
-          text-gray-900 font-bold text-lg leading-none
-          hover:bg-gray-50 active:bg-gray-100
-          disabled:opacity-40 disabled:cursor-not-allowed
-          select-none active:scale-[0.98]
-          transition
-        "
-        aria-label="Decrease quantity"
-      >
-        −
-      </button>
+      <path
+        d="M6.5 6h14l-1.5 8.5a2 2 0 0 1-2 1.5H9.2a2 2 0 0 1-2-1.6L5.3 3.8A1.5 1.5 0 0 0 3.8 2.5H2.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
-      <div
-        className="
-          flex-none
-          w-14 h-11 sm:w-12 sm:h-10
-          grid place-items-center
-          text-gray-900 font-bold text-base sm:text-sm
-          border-x border-gray-200
-          select-none
-        "
-        aria-live="polite"
-        aria-label={`Quantity ${v}`}
-      >
-        {v}
-      </div>
+function PrinterIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 8V4h10v4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 14h10v6H7v-6Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-      <button
-        type="button"
-        onClick={() => onChange(clampQty(v + 1))}
-        disabled={v >= 999}
-        className="
-          flex-none
-          w-12 h-11 sm:w-10 sm:h-10
-          grid place-items-center
-          text-gray-900 font-bold text-lg leading-none
-          hover:bg-gray-50 active:bg-gray-100
-          disabled:opacity-40 disabled:cursor-not-allowed
-          select-none active:scale-[0.98]
-          transition
-        "
-        aria-label="Increase quantity"
-      >
-        ＋
-      </button>
-    </div>
+function CheckIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M20 6 9 17l-5-5"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
 /** Draggable floating Cart button (snaps to edges) */
-function FloatingReserveButton({
+function FloatingCartButton({
   count,
   onClick
 }: {
@@ -163,13 +173,13 @@ function FloatingReserveButton({
     moved: false
   });
 
-  const STORAGE_KEY = 'hss_moving_supplies_floating_btn_pos_v2';
+  const STORAGE_KEY = 'hss_moving_supplies_floating_btn_pos_v3';
 
   function getButtonSize() {
     const el = btnRef.current;
     return {
-      w: el?.offsetWidth ?? 170,
-      h: el?.offsetHeight ?? 44
+      w: el?.offsetWidth ?? 60,
+      h: el?.offsetHeight ?? 60
     };
   }
 
@@ -200,8 +210,8 @@ function FloatingReserveButton({
       const h = window.innerHeight;
       // start near bottom-right
       return {
-        x: Math.max(8, Math.round(w - 210)),
-        y: Math.max(8, Math.round(h - 150))
+        x: Math.max(8, Math.round(w - 90)),
+        y: Math.max(8, Math.round(h - 160))
       };
     };
 
@@ -220,7 +230,7 @@ function FloatingReserveButton({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // keep on-screen on resize (and keep snapped behavior feeling consistent)
+  // keep on-screen on resize
   useEffect(() => {
     function onResize() {
       setPos((p) => snapToNearestEdge(p.x, p.y));
@@ -295,28 +305,27 @@ function FloatingReserveButton({
       onPointerCancel={endDrag}
       className="
         fixed z-[55]
-        text-white
-        px-4 py-3
-        rounded-full font-semibold
-        shadow-xl
-        active:scale-[0.98]
-        transition
+        rounded-full shadow-xl
+        active:scale-[0.98] transition
         select-none
-        flex items-center gap-2
+        flex items-center justify-center
       "
       style={{
         left: `${pos.x}px`,
         top: `${pos.y}px`,
+        width: 60,
+        height: 60,
         backgroundColor: '#EC1516', // HSS red
+        color: '#fff',
         touchAction: 'none' // required for mobile dragging
       }}
       aria-label={`Open cart. ${count} items.`}
       title="Drag to move • Tap to open"
     >
-      {/* drag handle (visual cue) */}
+      {/* subtle drag handle cue */}
       <span
         aria-hidden="true"
-        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/15"
+        className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/15"
         title="Drag"
       >
         <svg width="14" height="14" viewBox="0 0 14 14">
@@ -329,8 +338,14 @@ function FloatingReserveButton({
         </svg>
       </span>
 
-      {/* label */}
-      <span className="whitespace-nowrap">Cart ({count})</span>
+      <CartIcon className="w-7 h-7" />
+
+      {/* count badge */}
+      {count > 0 && (
+        <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full bg-white text-[#EC1516] text-xs font-bold flex items-center justify-center shadow">
+          {count}
+        </span>
+      )}
     </button>
   );
 }
@@ -468,6 +483,10 @@ export default function ProductGrid() {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  // Modal view: cart vs success receipt
+  const [modalView, setModalView] = useState<'cart' | 'success'>('cart');
+  const [submittedOrder, setSubmittedOrder] = useState<SubmittedOrder | null>(null);
+
   // quick feedback toast
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
@@ -495,6 +514,24 @@ export default function ProductGrid() {
     return () => clearTimeout(t);
   }, [justAdded]);
 
+  function openOrderModal() {
+    // Allow opening even if cart empty only if they are on success view (receipt)
+    if (cart.length === 0 && !submittedOrder) return;
+    setModalView('cart');
+    setIsOpen(true);
+    setStatus('idle');
+    setStatusMsg('');
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+    setSubmitting(false);
+    setStatus('idle');
+    setStatusMsg('');
+    // Keep submittedOrder so if they reopen quickly it’s fine; you can clear if you prefer:
+    // setSubmittedOrder(null);
+  }
+
   function addToCart(item: Item) {
     setCart((prev) => {
       const idx = prev.findIndex((l) => l.item.id === item.id);
@@ -508,6 +545,7 @@ export default function ProductGrid() {
 
     setJustAdded(item.name);
     setIsOpen(true);
+    setModalView('cart');
     setStatus('idle');
     setStatusMsg('');
   }
@@ -521,24 +559,95 @@ export default function ProductGrid() {
     setCart((prev) => prev.map((l) => (l.item.id === itemId ? { ...l, qty: safeQty } : l)));
   }
 
-  function openOrderModal() {
-    if (cart.length === 0) return;
-    setIsOpen(true);
-    setStatus('idle');
-    setStatusMsg('');
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-    setSubmitting(false);
-    setStatus('idle');
-    setStatusMsg('');
-  }
-
   // phone mask handler
   function handlePhoneChange(next: string) {
     const d = digitsOnly(next).slice(0, 10);
     setPhone(formatUsPhone(d));
+  }
+
+  function handlePrintReceipt(order: SubmittedOrder) {
+    const html = `
+      <html>
+        <head>
+          <title>HSS Moving Supplies Order</title>
+          <meta charset="utf-8" />
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+            h1 { margin: 0 0 6px; font-size: 20px; }
+            .muted { color: #555; font-size: 12px; }
+            .box { border: 1px solid #ddd; border-radius: 10px; padding: 14px; margin-top: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+            th { background: #f5f5f5; text-align: left; }
+            .right { text-align: right; }
+            .totals { margin-top: 12px; max-width: 360px; margin-left: auto; }
+            .totals div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+            .bold { font-weight: 700; }
+          </style>
+        </head>
+        <body>
+          <h1>Moving Supplies Order</h1>
+          <div class="muted">Hughestown Self-Storage</div>
+          <div class="muted">Submitted: ${order.submittedAt}</div>
+
+          <div class="box">
+            <div class="bold">Customer</div>
+            <div style="margin-top:6px;">${order.name}</div>
+            <div>${order.phone}</div>
+            <div>${order.email}</div>
+          </div>
+
+          <div class="box">
+            <div class="bold">Items</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th class="right">Qty</th>
+                  <th class="right">Line Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${order.items
+                  .map(
+                    (i) => `
+                  <tr>
+                    <td>${i.name}${i.size ? ` <span class="muted">(${i.size})</span>` : ''}</td>
+                    <td class="right">${i.qty}</td>
+                    <td class="right">$${(i.lineTotalCents / 100).toFixed(2)}</td>
+                  </tr>`
+                  )
+                  .join('')}
+              </tbody>
+            </table>
+
+            <div class="totals">
+              <div><span>Subtotal</span><span>$${(order.subtotalCents / 100).toFixed(2)}</span></div>
+              <div><span>PA Sales Tax (6%)</span><span>$${(order.taxCents / 100).toFixed(2)}</span></div>
+              <div class="bold" style="border-top:1px solid #ddd; margin-top:8px; padding-top:8px;">
+                <span>Grand Total</span><span>$${(order.grandTotalCents / 100).toFixed(2)}</span>
+              </div>
+              <div class="muted" style="margin-top:8px;">
+                Totals shown are estimates. Final total confirmed at pickup.
+              </div>
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="bold">Notes</div>
+            <div style="margin-top:6px;">${order.notes?.trim() ? order.notes.replace(/\n/g, '<br/>') : '—'}</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
   }
 
   async function submitReservationOrder(e: FormEvent) {
@@ -546,7 +655,7 @@ export default function ProductGrid() {
 
     if (cart.length === 0) {
       setStatus('error');
-      setStatusMsg('Your reservation order is empty.');
+      setStatusMsg('Your order is empty.');
       return;
     }
 
@@ -572,7 +681,6 @@ export default function ProductGrid() {
       phone: formatUsPhone(phoneDigits),
       email: email.trim(),
       subject: `📦 HSS Moving Supplies Order (${cartCount} items) – ${fullName.trim()}`,
-      // NEW: totals so the email can show Subtotal/Tax/Grand Total
       totals: {
         subtotalCents,
         taxRate: TAX_RATE,
@@ -580,7 +688,7 @@ export default function ProductGrid() {
         grandTotalCents
       },
       message: [
-        `MOVING SUPPLIES RESERVATION ORDER`,
+        `MOVING SUPPLIES ORDER`,
         ``,
         `Items:`,
         ...lines,
@@ -607,7 +715,7 @@ export default function ProductGrid() {
       });
 
       if (!res.ok) {
-        let msg = 'Something went wrong sending your reservation. Please try again.';
+        let msg = 'Something went wrong sending your order. Please try again.';
         try {
           const data = await res.json();
           if (data?.error) msg = data.error;
@@ -618,10 +726,37 @@ export default function ProductGrid() {
         return;
       }
 
+      // Build receipt snapshot BEFORE clearing cart
+      const submittedAt = new Date().toLocaleString('en-US');
+      const receipt: SubmittedOrder = {
+        submittedAt,
+        name: fullName.trim(),
+        phone: formatUsPhone(phoneDigits),
+        email: email.trim(),
+        notes: notes.trim(),
+        items: cart.map((l) => ({
+          id: l.item.id,
+          name: l.item.name,
+          size: l.item.size,
+          price: l.item.price,
+          qty: l.qty,
+          lineTotalCents: priceToCents(l.item.price) * l.qty
+        })),
+        subtotalCents,
+        taxCents,
+        grandTotalCents
+      };
+
+      setSubmittedOrder(receipt);
+
       setStatus('success');
-      setStatusMsg("Thanks — we received your reservation order. We'll contact you shortly to confirm availability.");
+      setStatusMsg("Thanks — we received your moving supplies order. We'll contact you shortly to confirm availability.");
       setSubmitting(false);
 
+      // Show printable receipt view in the modal
+      setModalView('success');
+
+      // Clear cart so floating button disappears (receipt remains visible)
       setCart([]);
     } catch {
       setStatus('error');
@@ -632,25 +767,39 @@ export default function ProductGrid() {
 
   return (
     <section className="py-16 bg-white" data-product-shop>
-      {/* ✅ Floating draggable Reserve Order button */}
-      {cartCount > 0 && <FloatingReserveButton count={cartCount} onClick={openOrderModal} />}
+      {/* ✅ Floating draggable Cart icon button */}
+      {cartCount > 0 && <FloatingCartButton count={cartCount} onClick={openOrderModal} />}
 
       {/* Toast feedback */}
       {justAdded && (
         <div className="fixed top-24 right-4 z-[60]">
           <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg text-sm">
-            ✅ Added to reserve order: <span className="font-semibold">{justAdded}</span>
+            ✅ Added to cart: <span className="font-semibold">{justAdded}</span>
           </div>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto px-4">
+        {/* ✅ Static centered Cart button above the title (only shows when cart has items) */}
+        {cartCount > 0 && (
+          <div className="flex justify-center mb-6">
+            <button
+              type="button"
+              onClick={openOrderModal}
+              className="inline-flex items-center gap-2 rounded-full bg-[#EC1516] text-white px-4 py-2 shadow-md hover:opacity-95 active:scale-[0.99] transition"
+              aria-label={`Open cart with ${cartCount} items`}
+            >
+              <CartIcon className="w-4 h-4" />
+              <span className="font-semibold">Cart</span>
+              <span className="bg-white/20 rounded-full px-2 py-0.5 text-sm">{cartCount}</span>
+            </button>
+          </div>
+        )}
+
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">Moving Supplies Available</h2>
           <p className="text-lg text-gray-600">Quality packing materials at competitive prices</p>
         </div>
-
-        {/* ❌ Removed the old sticky Reserve Order button */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {products.map((product, index) => (
@@ -666,7 +815,7 @@ export default function ProductGrid() {
                   onClick={() => addToCart(product)}
                   className="bg-orange-600 text-white px-4 py-2 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
                 >
-                  Add to Reserve Order →
+                  Add to Cart →
                 </button>
               </div>
             </div>
@@ -691,7 +840,7 @@ export default function ProductGrid() {
                 onClick={() => addToCart(kits[0])}
                 className="w-full mt-4 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
               >
-                Add Kit to Order →
+                Add to Cart →
               </button>
             </div>
 
@@ -715,7 +864,7 @@ export default function ProductGrid() {
                 onClick={() => addToCart(kits[1])}
                 className="w-full mt-4 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
               >
-                Add Kit to Order →
+                Add to Cart →
               </button>
             </div>
 
@@ -738,7 +887,7 @@ export default function ProductGrid() {
                 onClick={() => addToCart(kits[2])}
                 className="w-full mt-4 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 whitespace-nowrap cursor-pointer"
               >
-                Add Kit to Order →
+                Add to Cart →
               </button>
             </div>
           </div>
@@ -754,8 +903,14 @@ export default function ProductGrid() {
           <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">Reserve Order</h3>
-                <p className="text-sm text-gray-600 mt-1">Review your items, then submit to reserve for pickup.</p>
+                <h3 className="text-2xl font-bold text-gray-800">
+                  {modalView === 'success' ? 'Order Submitted' : 'Your Cart'}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {modalView === 'success'
+                    ? 'You can print this summary for your records.'
+                    : 'Review your items, then submit to reserve for pickup.'}
+                </p>
               </div>
               <button
                 type="button"
@@ -767,208 +922,318 @@ export default function ProductGrid() {
               </button>
             </div>
 
-            <div className="border border-gray-200 rounded-lg p-4 mb-4">
-              {cart.length === 0 ? (
-                <p className="text-sm text-gray-600">Your order is empty.</p>
-              ) : (
-                <div className="space-y-3">
-                  {cart.map((line) => (
-                    <div key={line.item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                      <div>
-                        <div className="font-semibold text-gray-800">{line.item.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {line.item.size ? `${line.item.size} • ` : ''}
-                          <span className="font-semibold text-orange-600">{line.item.price}</span>
-                        </div>
-                      </div>
+            {/* SUCCESS RECEIPT VIEW */}
+            {modalView === 'success' && submittedOrder ? (
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-green-50 p-4 text-green-900 flex gap-3">
+                  <div className="mt-0.5 text-green-700">
+                    <CheckIcon />
+                  </div>
+                  <div className="text-sm">
+                    <div className="font-semibold">
+                      Thanks — we received your moving supplies order. We'll contact you shortly to confirm availability.
+                    </div>
+                    <div className="mt-1 opacity-80">Submitted: {submittedOrder.submittedAt}</div>
+                  </div>
+                </div>
 
-                      <div className="flex items-center gap-2 flex-nowrap">
-                        {/* Qty label */}
-                        <span className="text-sm text-gray-600 shrink-0">Qty</span>
+                <div className="rounded-lg border bg-white p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-lg font-bold">Order Summary</div>
+                      <div className="text-sm text-gray-600">Hughestown Self-Storage Moving Supplies</div>
+                    </div>
 
-                        {/* Stepper */}
-                        <div className="inline-flex shrink-0 items-stretch rounded-lg border border-gray-300 bg-white overflow-hidden">
-                          {/* Decrease */}
-                          <button
-                            type="button"
-                            onClick={() => updateQty(line.item.id, clampQty(line.qty - 1))}
-                            disabled={line.qty <= 1}
-                            className="
-                              w-9 h-9
-                              flex items-center justify-center
-                              text-red-600 font-bold text-lg
-                              active:bg-red-50
-                              disabled:opacity-30
-                              transition
-                            "
-                            aria-label="Decrease quantity"
-                          >
-                            −
-                          </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePrintReceipt(submittedOrder)}
+                      className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
+                    >
+                      <PrinterIcon />
+                      Print
+                    </button>
+                  </div>
 
-                          {/* Quantity number */}
-                          <div
-                            className="
-                              min-w-[36px]
-                              flex items-center justify-center
-                              text-base font-semibold
-                              border-x border-gray-200
-                              px-2
-                            "
-                          >
-                            {line.qty}
-                          </div>
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-md bg-gray-50 p-3">
+                      <div className="font-semibold">Customer</div>
+                      <div className="mt-1">{submittedOrder.name}</div>
+                      <div>{submittedOrder.phone}</div>
+                      <div>{submittedOrder.email}</div>
+                    </div>
 
-                          {/* Increase */}
-                          <button
-                            type="button"
-                            onClick={() => updateQty(line.item.id, clampQty(line.qty + 1))}
-                            disabled={line.qty >= 99}
-                            className="
-                              w-9 h-9
-                              flex items-center justify-center
-                              text-green-600 font-bold text-lg
-                              active:bg-green-50
-                              disabled:opacity-30
-                              transition
-                            "
-                            aria-label="Increase quantity"
-                          >
-                            +
-                          </button>
-                        </div>
-
-                        {/* Trash icon */}
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(line.item.id)}
-                          className="
-                            w-9 h-9
-                            flex items-center justify-center
-                            border border-gray-300
-                            rounded-full
-                            text-gray-600
-                            active:bg-gray-100
-                            shrink-0
-                            transition
-                          "
-                          aria-label={`Remove ${line.item.name}`}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                            <path
-                              d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
-                              fill="currentColor"
-                            />
-                          </svg>
-                        </button>
+                    <div className="rounded-md bg-gray-50 p-3">
+                      <div className="font-semibold">Notes</div>
+                      <div className="mt-1 whitespace-pre-wrap">
+                        {submittedOrder.notes?.trim() ? submittedOrder.notes : '—'}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
 
-            {/* Totals */}
-            {cart.length > 0 && (
-              <div className="border border-gray-200 rounded-lg p-4 mb-4">
-                <div className="flex justify-between text-sm text-gray-700">
-                  <span>Subtotal</span>
-                  <span className="font-semibold">{centsToUsd(subtotalCents)}</span>
+                  <div className="mt-4 overflow-hidden rounded-md border">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left px-3 py-2 font-semibold">Item</th>
+                          <th className="text-center px-3 py-2 font-semibold w-16">Qty</th>
+                          <th className="text-right px-3 py-2 font-semibold w-28">Line Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {submittedOrder.items.map((it) => (
+                          <tr key={it.id} className="border-t">
+                            <td className="px-3 py-2">
+                              {it.name}
+                              {it.size ? <span className="text-xs text-gray-500"> {' '}({it.size})</span> : null}
+                            </td>
+                            <td className="px-3 py-2 text-center">{it.qty}</td>
+                            <td className="px-3 py-2 text-right">{centsToUsd(it.lineTotalCents)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <div className="w-full sm:w-[320px] text-sm space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal</span>
+                        <span className="font-semibold">{centsToUsd(submittedOrder.subtotalCents)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">PA Sales Tax (6%)</span>
+                        <span className="font-semibold">{centsToUsd(submittedOrder.taxCents)}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2">
+                        <span className="font-bold">Grand Total</span>
+                        <span className="font-bold">{centsToUsd(submittedOrder.grandTotalCents)}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 pt-2">
+                        Totals shown are estimates. Final total confirmed at pickup.
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm text-gray-700 mt-2">
-                  <span>PA Sales Tax (6%)</span>
-                  <span className="font-semibold">{centsToUsd(taxCents)}</span>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="rounded-full bg-[#EC1516] text-white px-6 py-3 font-semibold hover:opacity-95"
+                  >
+                    Close
+                  </button>
                 </div>
-                <div className="flex justify-between text-base text-gray-900 mt-3 pt-3 border-t border-gray-200">
-                  <span className="font-bold">Grand Total</span>
-                  <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Totals shown are estimates. Final total confirmed at pickup.</p>
               </div>
+            ) : (
+              <>
+                {/* CART VIEW */}
+                <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                  {cart.length === 0 ? (
+                    <p className="text-sm text-gray-600">Your order is empty.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {cart.map((line) => (
+                        <div key={line.item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                          <div>
+                            <div className="font-semibold text-gray-800">{line.item.name}</div>
+                            <div className="text-sm text-gray-600">
+                              {line.item.size ? `${line.item.size} • ` : ''}
+                              <span className="font-semibold text-orange-600">{line.item.price}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-nowrap">
+                            {/* Qty label */}
+                            <span className="text-sm text-gray-600 shrink-0">Qty</span>
+
+                            {/* Stepper */}
+                            <div className="inline-flex shrink-0 items-stretch rounded-lg border border-gray-300 bg-white overflow-hidden">
+                              {/* Decrease */}
+                              <button
+                                type="button"
+                                onClick={() => updateQty(line.item.id, clampQty(line.qty - 1))}
+                                disabled={line.qty <= 1}
+                                className="
+                                  w-9 h-9
+                                  flex items-center justify-center
+                                  text-red-600 font-bold text-lg
+                                  active:bg-red-50
+                                  disabled:opacity-30
+                                  transition
+                                "
+                                aria-label="Decrease quantity"
+                              >
+                                −
+                              </button>
+
+                              {/* Quantity number */}
+                              <div
+                                className="
+                                  min-w-[36px]
+                                  flex items-center justify-center
+                                  text-base font-semibold
+                                  border-x border-gray-200
+                                  px-2
+                                "
+                              >
+                                {line.qty}
+                              </div>
+
+                              {/* Increase */}
+                              <button
+                                type="button"
+                                onClick={() => updateQty(line.item.id, clampQty(line.qty + 1))}
+                                disabled={line.qty >= 99}
+                                className="
+                                  w-9 h-9
+                                  flex items-center justify-center
+                                  text-green-600 font-bold text-lg
+                                  active:bg-green-50
+                                  disabled:opacity-30
+                                  transition
+                                "
+                                aria-label="Increase quantity"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            {/* Trash icon */}
+                            <button
+                              type="button"
+                              onClick={() => removeFromCart(line.item.id)}
+                              className="
+                                w-9 h-9
+                                flex items-center justify-center
+                                border border-gray-300
+                                rounded-full
+                                text-gray-600
+                                active:bg-gray-100
+                                shrink-0
+                                transition
+                              "
+                              aria-label={`Remove ${line.item.name}`}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                  d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9ZM7 9h2v10H7V9Zm-1 12h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2Z"
+                                  fill="currentColor"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Totals */}
+                {cart.length > 0 && (
+                  <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div className="flex justify-between text-sm text-gray-700">
+                      <span>Subtotal</span>
+                      <span className="font-semibold">{centsToUsd(subtotalCents)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>PA Sales Tax (6%)</span>
+                      <span className="font-semibold">{centsToUsd(taxCents)}</span>
+                    </div>
+                    <div className="flex justify-between text-base text-gray-900 mt-3 pt-3 border-t border-gray-200">
+                      <span className="font-bold">Grand Total</span>
+                      <span className="font-bold">{centsToUsd(grandTotalCents)}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Totals shown are estimates. Final total confirmed at pickup.
+                    </p>
+                  </div>
+                )}
+
+                <form onSubmit={submitReservationOrder} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                      <input
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="Your name"
+                        autoComplete="name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                      <input
+                        value={phone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        inputMode="numeric"
+                        autoComplete="tel"
+                        maxLength={14}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="(570) 456-8765"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Pickup date/time preference, special requests, etc."
+                    />
+                  </div>
+
+                  {status !== 'idle' && (
+                    <div
+                      className={`text-sm rounded-lg px-3 py-2 ${
+                        status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                      }`}
+                    >
+                      {statusMsg}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
+                      disabled={submitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
+                      disabled={submitting || cart.length === 0}
+                    >
+                      {submitting ? 'Sending...' : 'Submit Order'}
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-gray-500 pt-1">
+                    Submitting sends your moving supplies order to Hughestown Self-Storage for confirmation.
+                  </p>
+                </form>
+              </>
             )}
-
-            <form onSubmit={submitReservationOrder} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                  <input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Your name"
-                    autoComplete="name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
-                  <input
-                    value={phone}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
-                    inputMode="numeric"
-                    autoComplete="tel"
-                    maxLength={14}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="(570) 456-8765"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Enter 10 digits (US phone number).</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Pickup date/time preference, special requests, etc."
-                />
-              </div>
-
-              {status !== 'idle' && (
-                <div
-                  className={`text-sm rounded-lg px-3 py-2 ${
-                    status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                  }`}
-                >
-                  {statusMsg}
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="w-1/3 border border-gray-300 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-50"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-2/3 bg-orange-600 text-white py-3 rounded-full font-semibold hover:bg-orange-700 disabled:opacity-60"
-                  disabled={submitting || cart.length === 0}
-                >
-                  {submitting ? 'Sending...' : 'Submit Reservation Order'}
-                </button>
-              </div>
-
-              <p className="text-xs text-gray-500 pt-1">
-                Submitting sends your reservation order to Hughestown Self-Storage for confirmation.
-              </p>
-            </form>
           </div>
         </div>
       )}
