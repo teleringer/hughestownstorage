@@ -89,7 +89,9 @@ function buildReservationEmailHTML(opts: {
           .map((it) => {
             const lineTotal = it.qty * it.priceEach;
             const sizeLine = it.size
-              ? `<div style="font-size:12px; color:#666; margin-top:2px;">${escapeHtml(it.size)}</div>`
+              ? `<div style="font-size:12px; color:#666; margin-top:2px;">${escapeHtml(
+                  it.size
+                )}</div>`
               : "";
 
             return `
@@ -137,7 +139,9 @@ function buildReservationEmailHTML(opts: {
 
     <!-- Body -->
     <div style="padding:18px;">
-      <h1 style="margin:0 0 10px 0; font-size:20px; color:#111;">${escapeHtml(opts.title)}</h1>
+      <h1 style="margin:0 0 10px 0; font-size:20px; color:#111;">${escapeHtml(
+        opts.title
+      )}</h1>
       <div style="color:#444; font-size:14px; line-height:1.45; margin-bottom:12px;">
         ${escapeHtml(opts.intro)}
       </div>
@@ -151,7 +155,9 @@ function buildReservationEmailHTML(opts: {
         <div style="font-size:13px; color:#111; line-height:1.55;">
           <div><b>Name:</b> ${escapeHtml(opts.name)}</div>
           <div><b>Phone:</b> ${escapeHtml(opts.phone)}</div>
-          <div><b>Email:</b> <a href="mailto:${escapeHtml(opts.email)}" style="color:#0b57d0;">${escapeHtml(opts.email)}</a></div>
+          <div><b>Email:</b> <a href="mailto:${escapeHtml(
+            opts.email
+          )}" style="color:#0b57d0;">${escapeHtml(opts.email)}</a></div>
         </div>
       </div>
 
@@ -179,15 +185,21 @@ function buildReservationEmailHTML(opts: {
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:14px;">
           <tr>
             <td style="padding:6px 0; color:#444;">Subtotal</td>
-            <td align="right" style="padding:6px 0; color:#111; font-weight:800;">${money(subtotal)}</td>
+            <td align="right" style="padding:6px 0; color:#111; font-weight:800;">${money(
+              subtotal
+            )}</td>
           </tr>
           <tr>
             <td style="padding:6px 0; color:#444;">PA Sales Tax (6%)</td>
-            <td align="right" style="padding:6px 0; color:#111; font-weight:800;">${money(tax)}</td>
+            <td align="right" style="padding:6px 0; color:#111; font-weight:800;">${money(
+              tax
+            )}</td>
           </tr>
           <tr>
             <td style="padding:10px 0 0 0; color:#111; font-weight:900; font-size:16px;">Grand Total</td>
-            <td align="right" style="padding:10px 0 0 0; color:#111; font-weight:900; font-size:16px;">${money(total)}</td>
+            <td align="right" style="padding:10px 0 0 0; color:#111; font-weight:900; font-size:16px;">${money(
+              total
+            )}</td>
           </tr>
         </table>
         <div style="margin-top:6px; font-size:11px; color:#666;">
@@ -223,28 +235,30 @@ function buildReservationEmailHTML(opts: {
       <div style="font-size:12px; color:#111;">
         <div style="font-weight:900;">Hughestown Self-Storage</div>
 
-        <!-- ADDED: address (left aligned, same style as phone line) -->
+        <!-- address -->
         <div>133 New Street</div>
         <div>Hughestown, PA 18640</div>
 
         <div>(570) 362-6150</div>
         <div><a href="mailto:office@hughestownstorage.com" style="color:#0b57d0;">office@hughestownstorage.com</a></div>
-        <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(opts.siteUrl.replace(/^https?:\/\//, ""))}</a></div>
+        <div><a href="${escapeHtml(opts.siteUrl)}" style="color:#0b57d0;">${escapeHtml(
+    opts.siteUrl.replace(/^https?:\/\//, "")
+  )}</a></div>
       </div>
 
-
-      <!-- copyright line -->
+      <!-- copyright -->
       <div style="text-align:center; font-size:11px; color:#777; margin-top:14px;">
         Copyright ©${currentYear}. Owned &amp; Operated by S3 Storage Group, LLC. All rights Reserved.
       </div>
+
 <hr style="border:none; border-top:1px solid #eee; margin:18px 0;" />
 <div style="margin-top:18px; font-size:10px; color:#888; line-height:1.5;">
   <b>Confidentiality Notice:</b><br/>
-  This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage. 
-  If you are not the intended recipient, please notify the sender immediately and permanently delete this message and any attachments from your system. 
+  This email and any attachments are intended solely for the individual or entity to whom they are addressed and may contain confidential, proprietary, or legally privileged information related to Hughestown Self-Storage.
+  If you are not the intended recipient, please notify the sender immediately and permanently delete this message and any attachments from your system.
   Unauthorized review, use, disclosure, or distribution is strictly prohibited.
   <br/><br/>
-  Hughestown Self-Storage makes no representations or warranties regarding the completeness or accuracy of the information contained in this communication. 
+  Hughestown Self-Storage makes no representations or warranties regarding the completeness or accuracy of the information contained in this communication.
   For questions regarding this message or our services, please contact us at (570) 362-6150 or office@hughestownstorage.com.
 </div>
     </div>
@@ -253,16 +267,130 @@ function buildReservationEmailHTML(opts: {
   `;
 }
 
+/** Basic helpers (security + spam scoring) */
+function isValidEmail(email: string) {
+  // Not perfect, but good enough to stop junk
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function stripCRLF(s: string) {
+  // Prevent header injection via newlines
+  return (s || "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function looksLikeGibberish(message: string) {
+  const s = (message || "").trim();
+  if (s.length < 10) return true;
+
+  // too many non-letters (very rough heuristic)
+  const letters = (s.match(/[A-Za-z]/g) || []).length;
+  const nonLetters = s.length - letters;
+  if (letters > 0 && nonLetters / s.length > 0.65) return true;
+
+  // long runs of same char
+  if (/(.)\1{7,}/.test(s)) return true;
+
+  return false;
+}
+
+async function verifyTurnstile(token: string, ip?: string) {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    return { ok: false, error: "ENV_MISSING_TURNSTILE_SECRET_KEY" as const };
+  }
+  if (!token) {
+    return { ok: false, error: "TURNSTILE_TOKEN_MISSING" as const };
+  }
+
+  const body = new URLSearchParams({
+    secret,
+    response: token,
+  });
+
+  // Optional: include remoteip (Cloudflare supports it)
+  if (ip) body.set("remoteip", ip);
+
+  const resp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body,
+  });
+
+  const data = (await resp.json()) as {
+    success: boolean;
+    "error-codes"?: string[];
+    challenge_ts?: string;
+    hostname?: string;
+    action?: string;
+    cdata?: string;
+  };
+
+  if (!data.success) {
+    return { ok: false, error: "TURNSTILE_FAILED" as const, details: data["error-codes"] };
+  }
+
+  return { ok: true as const };
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const name = (body?.name || "").toString();
-    const email = (body?.email || "").toString();
-    const phone = (body?.phone || "").toString();
+    // Fields from ContactForm.tsx (JSON)
+    const name = (body?.name || "").toString().trim();
+    const email = (body?.email || "").toString().trim();
+    const phone = (body?.phone || "").toString().trim();
     const message = (body?.message || "").toString();
     const inboundSubject = (body?.subject || "").toString();
 
+    // Anti-spam fields (added in ContactForm.tsx)
+    const turnstileToken = (body?.turnstileToken || "").toString().trim();
+    const honeypotCompany = (body?.company || "").toString().trim();
+    const startedAtRaw = (body?.startedAt || "").toString().trim();
+
+    // 1) Honeypot: if filled, silently accept but do nothing (bot)
+    if (honeypotCompany) {
+      return Response.json({ ok: true });
+    }
+
+    // 2) Time trap: bots submit too fast (< 3s)
+    const startedAt = Number(startedAtRaw);
+    if (Number.isFinite(startedAt) && startedAt > 0) {
+      const elapsedMs = Date.now() - startedAt;
+      if (elapsedMs < 3000) {
+        return Response.json({ ok: false, error: "TOO_FAST" }, { status: 400 });
+      }
+    }
+
+    // 3) Required validation (prevents empty submissions)
+    if (!name || !email || !message) {
+      return Response.json({ ok: false, error: "MISSING_REQUIRED_FIELDS" }, { status: 400 });
+    }
+    if (!isValidEmail(email)) {
+      return Response.json({ ok: false, error: "INVALID_EMAIL" }, { status: 400 });
+    }
+    if (message.trim().length < 10) {
+      return Response.json({ ok: false, error: "MESSAGE_TOO_SHORT" }, { status: 400 });
+    }
+
+    // 4) Turnstile verification (critical)
+    const ip =
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      undefined;
+
+    const ts = await verifyTurnstile(turnstileToken, ip);
+    if (!ts.ok) {
+      // For bots, reject
+      return Response.json({ ok: false, error: ts.error }, { status: 400 });
+    }
+
+    // 5) Optional gibberish check (blocks a lot of junk)
+    if (looksLikeGibberish(message)) {
+      return Response.json({ ok: false, error: "LOW_QUALITY_MESSAGE" }, { status: 400 });
+    }
+
+    // --- existing env + resend setup ---
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const CONTACT_TO = process.env.CONTACT_TO;
     const CONTACT_FROM = process.env.CONTACT_FROM;
@@ -279,12 +407,16 @@ export async function POST(req: Request) {
 
     const resend = new Resend(RESEND_API_KEY);
 
+    // Reservation detection unchanged
     const isReservation =
       inboundSubject.startsWith("📦 HSS Moving Supplies Order") ||
       /MOVING SUPPLIES RESERVATION ORDER/i.test(message);
 
-    const fallbackSubject = `New message from ${name || "Website"} (${phone || "no phone"})`;
-    const subject = inboundSubject || fallbackSubject;
+    // Sanitize subject lines to prevent header injection
+    const safeName = stripCRLF(name) || "Website";
+    const safePhone = stripCRLF(phone) || "no phone";
+    const fallbackSubject = `New message from ${safeName} (${safePhone})`;
+    const subject = stripCRLF(inboundSubject) || fallbackSubject;
 
     const siteUrl = "https://hughestownstorage.com";
     const logoUrl = `${siteUrl}/images/email/hss-logo.png`;
@@ -350,8 +482,7 @@ export async function POST(req: Request) {
       to: CONTACT_TO.split(",").map((s) => s.trim()),
       replyTo: email || undefined,
       subject,
-      text:
-`Name: ${name}
+      text: `Name: ${name}
 Email: ${email}
 Phone: ${phone}
 
@@ -364,8 +495,7 @@ ${message}`,
         from: CONTACT_FROM,
         to: email,
         subject: "Thanks for contacting Hughestown Self-Storage",
-        text:
-`Hi ${name || ""},
+        text: `Hi ${name || ""},
 
 Thanks for reaching out! We received your message and will get back to you soon.
 
