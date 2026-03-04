@@ -282,6 +282,9 @@ function looksLikeGibberish(message: string) {
   const s = (message || "").trim();
   if (s.length < 10) return true;
 
+  // add inside looksLikeGibberish(message)
+if (!/\s/.test(s) && s.length >= 12) return true; // no spaces = usually bot
+
   // too many non-letters (very rough heuristic)
   const letters = (s.match(/[A-Za-z]/g) || []).length;
   const nonLetters = s.length - letters;
@@ -372,6 +375,10 @@ export async function POST(req: Request) {
     if (message.trim().length < 10) {
       return Response.json({ ok: false, error: "MESSAGE_TOO_SHORT" }, { status: 400 });
     }
+    const phoneDigits = phone.replace(/\D/g, "");
+if (phone && phoneDigits.length !== 10) {
+  return Response.json({ ok: false, error: "INVALID_PHONE" }, { status: 400 });
+}
 
     // 4) Turnstile verification (critical)
     const ip =

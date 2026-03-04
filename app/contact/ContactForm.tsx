@@ -244,16 +244,35 @@ export default function ContactForm() {
                 Phone{' '}
                 <span className="text-gray-400 font-medium">(optional)</span>
               </label>
-              <input
-                id="phone"
-                name="phone"
-                autoComplete="tel"
-                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-gray-900 shadow-sm
-                           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600/30 focus:border-red-600"
-                placeholder="(570) 555-1234"
-                value={form.phone}
-                onChange={onChange}
-              />
+<input
+  id="phone"
+  name="phone"
+  autoComplete="tel"
+  inputMode="tel"
+  className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-gray-900 shadow-sm
+           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600/30 focus:border-red-600"
+  placeholder="(404) 693-3463"
+  value={form.phone}
+  onChange={(e) => {
+    // keep digits only, max 10
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+
+    // format: (###) ###-####
+    let formatted = digits;
+    if (digits.length >= 1) {
+      formatted = '(' + digits.slice(0, 3);
+    }
+    if (digits.length >= 4) {
+      formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6);
+    }
+    if (digits.length >= 7) {
+      formatted =
+        '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6, 10);
+    }
+
+    setForm((f) => ({ ...f, phone: formatted }));
+  }}
+/>
             </div>
 
             <div className="md:col-span-2">
